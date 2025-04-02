@@ -155,7 +155,6 @@ class LocationApptTableInfoTest extends QueryTestFramework {
     setupDtm = Timestamp.valueOf("2024-11-26 13:35:45.318").toLocalDateTime
   )
 
-  // 🔹 Mock input data
   val zhApptLocationDF = mkDataFrame(
     zh_appt_location(
       client_ds_id = 101,
@@ -171,12 +170,10 @@ class LocationApptTableInfoTest extends QueryTestFramework {
     )
   )
 
-  // 🔹 Input Map
   val loadedDependencies = Map(
     "zh_appt_location" -> zhApptLocationDF
   )
 
-  // 🔹 Expected Output
   val expectedOutput = Seq(
     Location(
       id = Identifier.createIdentifier(
@@ -219,7 +216,6 @@ class LocationApptTableInfoTest extends QueryTestFramework {
     )
   )
 
-  // 🔹 Run the test
   testQuery(
     testName = "should return expected FHIR Location given the input zh_appt_location row",
     query = LocationApptTableInfo,
