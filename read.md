@@ -1,252 +1,134 @@
-Value Enablement (VBCBIA) Home
-Created by Local Admin (EW), last modified by Ganji, Muralidhar on Feb 18, 2025
-VBC Team Structure
-
-
-
-
-
-
-
-
-Quality Management	
-Bryan, Adam S 
-
-
-
-Ganji, Muralidhar 	
-Subbaraj, Ravisankar 
-
-Sarkar Avik Kumar
-
-Nagasree Erukulla	
-Katie  Carito
-
-Schneider, Bill 	
-Jennifer Gates
-
-Warner, Eric
-
-Sasank Cheruku(Tech Lead)
-Sanket Joshi
-Karthikeyan Radhakirshma
-Suntharam,
-Sree Harsha Vardhan
-Sanket Patel
-Shishir Thapa
-Vinoth Kesavan
- 
-
-Population Stratification	
-Bryan, Adam S 
-
-
-
-Ganji, Muralidhar 	
-Subbaraj, Ravisankar 
-
-Sarkar Avik Kumar
-
-Nagasree Erukulla	
-Mahanaz
-
-Tabatabaee
-
-Abhinav Gupta
-
-Schneider, Bill 	Srividhya Kolla	
-Karthikeyan Annadurai
-
-Archana Parwatikar(Tech Lead)
-Ravi Shankara
-Prititosh Ghosh
-Vishwanath Singh
-Vuduta Nitesh
-Usha Alluri
-Shashank Kasupa
-Kavitha
-Care Coordination and Transition	Bryan, Adam S 	Rosinski, Christopher  	Sarkar Avik Kumar	Nagasree Erukulla	
-Crater, Bradford R
-
-Anjali Mishra
-
-Schneider, Bill 
-
-Sadeghi, Bijan
-
-Shivangi Mehta	
-
-
-Gupta, Prashant 
-
-Anurag Kumar
-
-Rupal Thakar
- Abhishek Kolipey,
-Venkata Subrahmanyam Ayinala
-Gautham R, 
-Shivani Dhannaram,
-David Munoz
-Medication Intervention	Bryan, Adam S 	Ganji, Muralidhar	
-Subbaraj, Ravisankar 
-
-Sarkar Avik Kumar
-
-Nagasree Erukulla	
-Norman, Lauren E 
-
-Shivani Das
-
-
-
-Schneider, Bill 	Shradha Kathare	Alexis Fletcher	
-Udayan Kanjilal
-Davis Amber
-Rajesh Anabiah
-Risk Coding Accuracy	Bryan, Adam S 	Ganji, Muralidhar 	
-Subbaraj, Ravisankar 
-
-Sarkar Avik Kumar
-
-Nagasree Erukulla	
-Grisham, Cory 
-
-Alexandria  Guiducci
-
-Betancourt, Claude
-
-Schneider, Bill 
-
-Arvind Subramanyam	English Grady	
-Ramana Rakothu (Tech Lead)
-Tracey Basista
-Prakash Bhatt
-Anil Seetharam
-Sai Venkata
-Rajesh Anbiah
-Parwatikar, Archana
-Guru Dudduri
-Arunaraj, Ashveena
-Nandana, R
-Tim Meindle
-Vishnu Charan
-Nikhil Kumar
-Akhil Gudisa
-Sanket Kumar Patel
-Karthikeyan Radhakrishnan
-Ragunath
-Health Equity and SDOH	Bryan, Adam S 	Ganji, Muralidhar 	
-Awasthi, Akash 
-
-Nagasree Erukulla	
-Beth Domboski
-
-Priti Roy
-
-Schneider, Bill 	Thamilselvi	Boyko, Maksym 	
-Jordan Morris
-Mohanraj Raja
-Jayesh Sulanke
-Common Capabilities 
-
-(Auth and Authentication)
-
-Bryan, Adam S 	Ganji, Muralidhar 	
-Subbaraj, Ravisankar 
-
-Sarkar Avik Kumar
-
-Nagasree Erukulla	
-J.D Biskner
-
-Schneider, Bill 	
-Nazia Khader
-
-
-
-Ragunath	
-Udayan Kanjilal
-Ranjith
-Rachewar Komal
-Aparna Ambulgekar
-Pooja
-Common Capabilities 
-
-( Architecture Team)
-
-Bryan, Adam S 	Ganji, Muralidhar 	
-Subbaraj, Ravisankar 
-
-Sarkar Avik Kumar
-
-Nagasree Erukulla	
-Nitin Sharma
-
-
-
-Schneider, Bill 	
-Bhattarai, Bidhan 
-
-Gopi Krishna
-
-Mahima Venugopal
-
-Denise Rondeau (Tech Lead)
-Archana Parwatikar (Tech Lead)
-Suresh Maddela (Tech Lead)
-Matthew Braunschweig
-Dusan Makevic
-Jehin Jayrchandran
-Ram Smaran Pandiri
-Binod Kumar Sahoo
-Vijendra Gurran
-Srinivasan Shankaraman
-Adithya
-Raghu Nanadan
-Financial Performance	Bryan, Adam S 	Ganji, Muralidhar 	
-Awasthi, Akash 
-
-Sunny Matson
-
-(VBC Product Leader)
-
-Deepak Mittal
-
-
-
-Schneider, Bill 	Mrudul Harne	Rakothu, Ramanakumar 	
-Claude Betancourt
-Aishwarya Selvam
-Denise Rondeau
-Srikanth Madishetty
-Surya T
-Venkat Raghava Puri
-Matthew Mateyak
-Network and Provider Performance	Bryan, Adam S	Ganji, Muralidhar	
-Awasthi, Akash 
-
-Sunny Matson
-
-Alex Connor
-
-Schneider, Bill	
-Priti Roy
-
-Thamilselvi
-
-Boyko, Maksym 
-
-TBD
-Contract Performance + VIM	Bryan, Adam S	Ganji, Muralidhar	
-Awasthi, Akash 
-
-Sunny Matson
-
-Yao Zhang
-
-Schneider, Bill	
-
-
-Rakothu, Ramanakumar 
-
-TBD
+AllergyTableInfoTest
+
+import com.optum.insights.smith.fhir.Allergy
+import com.optum.insights.smith.fhir.datatypes._
+import com.optum.oap.cdr.models._
+import com.optum.ove.common.etl.framework.QueryTestFramework
+import com.optum.ove.common.models.xwalk_map
+import com.optum.ove.common.utils.CommonRuntimeVariables
+
+import java.sql.Timestamp
+
+class AllergyTableInfoTest extends QueryTestFramework {
+
+  behavior of "ALLERGY"
+
+  import spark.implicits._
+
+  val runtimeVariables = CommonRuntimeVariables(setupDtm = Timestamp.valueOf("2024-11-26 13:35:45.318").toLocalDateTime)
+
+  val allergyDF = mkDataFrame(
+    com.optum.oap.cdr.models.allergy(
+      client_ds_id = 10628,
+      localallergencd = "GABAPENTINOIDS / BENZODIAZEPINES",
+      localallergentype = "10628.a.8",
+      grp_mpi = "1390409554",
+      onsetdate = Timestamp.valueOf("2019-10-03 18:06:00.000"),
+      localstatus = "Test Local Status",
+      localallergendesc = "GABAPENTINOIDS / BENZODIAZEPINES",
+      dcc = "20601",
+      encounterid = "c96aec0a6721377f64fcf6b1b49f95"
+    )
+  )
+
+  val mapAllergenDF = mkDataFrame(
+    map_allergen(
+      mnemonic = "Test Local Status",
+      cui = "CH002030"
+    )
+  )
+
+  val mapAllergenTypeDF = mkDataFrame(
+    map_allergen_type(
+      localcode = "10628.a.8",
+      cui = "CH002030"
+    )
+  )
+
+  val mapAllergyStatusDF = mkDataFrame(
+    map_allergy_status(
+      mnemonic = "Test Local Status",
+      cui = "CH002030"
+    )
+  )
+
+  val mvHtsDomainConceptDF = mkDataFrame(
+    mv_hts_domain_concept(
+      concept_cui = "CH002030",
+      concept_name = "Test Local Status"
+    )
+  )
+
+  val refHtsDccCurrentDF = mkDataFrame(
+    ref_hts_dcc_current(
+      dcc = "20601",
+      genericname = "Zavegepant",
+      pcc = "166",
+      pcc_label = "Mitotic inhibitors, taxanes"
+    )
+  )
+
+  val xwalk_mapDF = mkDataFrame(
+    xwalk_map(
+      domain = "allergy",
+      sourceAttribute = "clinicalStatus",
+      sourceSystem = "cui",
+      sourceCode = "CH002030",
+      sourceDescription = "Active (Allergy Status)",
+      targetSystem = "fhirClinicalStatus",
+      targetDescription = "Active",
+      targetCode = "active"
+    ),
+    xwalk_map(
+      domain = "allergy",
+      sourceAttribute = "category",
+      sourceSystem = "cui",
+      sourceCode = "CH002030",
+      sourceDescription = "Resolved (Allergy Status)",
+      targetSystem = "fhirClinicalStatus",
+      targetDescription = "active",
+      targetCode = "active"
+    )
+  )
+
+  val loadedDependencies = Map(
+    "ALLERGY_SRC" -> allergyDF,
+    "MAP_ALLERGEN" -> mapAllergenDF,
+    "MAP_ALLERGEN_TYPE" -> mapAllergenTypeDF,
+    "MAP_ALLERGY_STATUS" -> mapAllergyStatusDF,
+    "MV_HTS_DOMAIN_CONCEPT" -> mvHtsDomainConceptDF,
+    "REF_HTS_DCC_CURRENT" -> refHtsDccCurrentDF,
+    "XWALK_MAP" -> xwalk_mapDF
+  )
+
+
+  val expectedOutput = Seq(
+    Allergy(
+      id = Identifier.createIdentifier("10628GABAPENTINOIDS / BENZODIAZEPINES10628.a.813904095542019-10-03 18:06:00.000Test Local StatusGABAPENTINOIDS / BENZODIAZEPINES20601c96aec0a6721377f64fcf6b1b49f95", "10628", "usual", CodeableConcept.createCodeableConcept(Seq(Coding("CDR:10628", "concatenated", "a concated key as there is no PK on the data")))),
+      meta = Meta.createMeta(Timestamp.valueOf("2024-11-26 13:35:45.318")),
+      ids = null,
+      clinicalStatus = CodeableConcept.createCodeableConcept(Seq(Coding("CDR:10628", "active"))),
+      verificationStatus = null,
+      `type` = CodeableConcept.createCodeableConcept(Seq(Coding(null, "allergy"))),
+      category = CodeableConcept.createCodeableConcept(Seq(Coding("CDR:10628", "active"))),
+      criticality = null,
+      code = CodeableConcept.createCodeableConcept(Seq(Coding("CDR:10628", "GABAPENTINOIDS / BENZODIAZEPINES", "GABAPENTINOIDS / BENZODIAZEPINES"), null, Coding("DCC", "20601", "Zavegepant"), null)),
+      patient = Reference.createReference(null, "patient", "1390409554", null, null, "CDR"),
+      encounter = Reference.createReference(null, "encounter", "c96aec0a6721377f64fcf6b1b49f95", null, null, "CDR:10628"),
+      onset = TimeType.createTimeType(null, null, null),
+      recordedDate = Timestamp.valueOf("2019-10-03 18:06:00.000"),
+      recorder = null,
+      lastOccurrence = null,
+      notes = null,
+      extension = null
+    )
+  )
+
+  testQuery(
+    testName = "have expected output given input",
+    query = AllergyTableInfo,
+    inputs = loadedDependencies,
+    expectedOutput = expectedOutput,
+    runtimeVariables = runtimeVariables
+  )
+}
