@@ -119,3 +119,109 @@ object AllergyTableInfo extends BaseTableInfo[Allergy] {
     finalAllergyDF
   }
 }
+
+
+
+--------------------------------------------
+
+LocationAppt Code
+
+package com.optum.ove.common.etl.cdrbe
+
+import com.optum.insights.smith.fhir.Location
+import com.optum.insights.smith.fhir.datatypes._
+import com.optum.oap.sparkdataloader.{RuntimeVariables, UserDefinedFunctionForDataLoader}
+import com.optum.ove.common.utils.ClinicalFhirDataTypeUtils._
+import com.optum.ove.common.utils.{BaseTableInfo, CommonRuntimeVariables}
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{ArrayType, TimestampType}
+import org.apache.spark.sql.{DataFrame, Encoders, SparkSession}
+
+import java.sql.Timestamp
+
+object LocationApptTableInfo extends BaseTableInfo[Location] {
+
+  override def name: String = "LOCATION_APPT"
+
+  override def dependsOn: Set[String] = Set(
+    "zh_appt_location"
+    // Add mapping tables here if needed (e.g., MAP_PHYSICAL_TYPE)
+  )
+
+  override protected def createDataFrame(spark: SparkSession,
+                                         loadedDependencies: Map[String, DataFrame],
+                                         udfMap: Map[String, UserDefinedFunctionForDataLoader],
+                                         runtimeVariables: RuntimeVariables): DataFrame = {
+
+    import spark.implicits._
+
+    val setupDtmTimestamp = Timestamp.valueOf(CommonRuntimeVariables(runtimeVariables).setupDtm)
+
+    val locationDF = loadedDependencies("zh_appt_location").as("loc")
+
+    val transformed = locationDF.select(
+      // ID
+      createIdentifierWithCodeableConceptUDF(
+        concat_ws("-", col("loc.client_ds_id"), col("loc.locationid")),
+        col("loc.client_ds_id"),
+        lit("usual"),
+        lit(""),
+        concat(lit("CDR:"), col("loc.client_ds_id")),
+        lit("auto-gen"),
+        lit("Generated ID")
+      ).as("id"),
+
+      // Meta
+      typedLit(rowToMeta(lit(setupDtmTimestamp))).as("meta"),
+
+      // Name
+      col("loc.locationname").as("name"),
+
+      // Status
+      lit("active").as("status"),
+
+      // Description
+      col("loc.locationname").as("description"),
+
+      // Address
+      struct(
+        array(col("loc.address1")).as("line"),
+        col("loc.city").as("city"),
+        col("loc.state").as("state"),
+        col("loc.zipcode").as("postalCode"),
+        lit("IN").as("country"),
+        lit("work").as("use"),
+        lit("physical").as("type")
+      ).as("address"),
+
+      // Telecom (if available)
+      array(
+        struct(
+          lit("phone").as("system"),
+          col("loc.phone_number").as("value"),
+          lit("work").as("use")
+        )
+      ).as("telecom"),
+
+      // Types (Optional, hardcoded to Office)
+      typedLit(Seq(CodeableConcept.createCodeableConcept(
+        Seq(Coding("http://hl7.org/fhir/R4/codesystem-service-place.html", "11", "Office"))
+      ))).as("types"),
+
+      // PhysicalType (Optional)
+      lit(null).cast(Encoders.product[CodeableConcept].schema).as("physicalType"),
+
+      // Managing Organization (Optional)
+      createReferenceUDF(lit("Organization"), col("loc.org_id"), lit("CDR"), lit(null)).as("managingOrganization"),
+
+      // Part of (Optional)
+      createReferenceUDF(lit("Location"), col("loc.parent_location_id"), lit("CDR"), lit(null)).as("partOf"),
+
+      // Extensions (Optional)
+      lit(null).cast(ArrayType(Encoders.product[Extension].schema)).as("extension")
+    )
+
+    transformed
+  }
+}
+
