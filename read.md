@@ -132,3 +132,89 @@ class AllergyTableInfoTest extends QueryTestFramework {
     runtimeVariables = runtimeVariables
   )
 }
+
+---------------------------------------------------------------
+LocationApptInfoTest
+
+import com.optum.insights.smith.fhir.Location
+import com.optum.insights.smith.fhir.datatypes._
+import com.optum.ove.common.etl.cdrbe.LocationApptTableInfo
+import com.optum.ove.common.etl.framework.QueryTestFramework
+import com.optum.ove.common.models._
+import com.optum.ove.common.utils.CommonRuntimeVariables
+import org.apache.spark.sql.SparkSession
+
+import java.sql.Timestamp
+
+class LocationApptTableInfoTest extends QueryTestFramework {
+
+  behavior of "LOCATION_APPT"
+
+  import spark.implicits._
+
+  val runtimeVariables = CommonRuntimeVariables(setupDtm = Timestamp.valueOf("2024-11-26 13:35:45.318").toLocalDateTime)
+
+  val zhApptLocationDF = mkDataFrame(
+    zh_appt_location(
+      client_ds_id = 101,
+      locationid = "LOC001",
+      locationname = "Apollo Clinic - Delhi",
+      address1 = "123 Health Street",
+      city = "New Delhi",
+      state = "Delhi",
+      zipcode = "110001",
+      phone_number = "+91-9999999999",
+      org_id = "ORG001",
+      parent_location_id = "PLOC001"
+    )
+  )
+
+  val loadedDependencies = Map(
+    "zh_appt_location" -> zhApptLocationDF
+  )
+
+  val expectedOutput = Seq(
+    Location(
+      id = Identifier.createIdentifier(
+        "101-LOC001",
+        "101",
+        "usual",
+        CodeableConcept.createCodeableConcept(Seq(Coding("CDR:101", "auto-gen", "Generated ID")))
+      ),
+      meta = Meta.createMeta(Timestamp.valueOf("2024-11-26 13:35:45.318")),
+      name = "Apollo Clinic - Delhi",
+      status = "active",
+      description = "Apollo Clinic - Delhi",
+      address = Address(
+        line = Seq("123 Health Street"),
+        city = "New Delhi",
+        state = "Delhi",
+        postalCode = "110001",
+        country = "IN",
+        use = "work",
+        `type` = "physical"
+      ),
+      telecom = Seq(
+        ContactPoint(system = "phone", value = "+91-9999999999", use = "work")
+      ),
+      types = Seq(
+        CodeableConcept.createCodeableConcept(Seq(
+          Coding("http://hl7.org/fhir/R4/codesystem-service-place.html", "11", "Office")
+        ))
+      ),
+      physicalType = null,
+      managingOrganization = Reference.createReference(null, "Organization", "ORG001", null, null, "CDR"),
+      partOf = Reference.createReference(null, "Location", "PLOC001", null, null, "CDR"),
+      extension = null
+    )
+  )
+
+  testQuery(
+    testName = "have expected output given input",
+    query = LocationApptTableInfo,
+    inputs = loadedDependencies,
+    expectedOutput = expectedOutput,
+    runtimeVariables = runtimeVariables
+  )
+}
+
