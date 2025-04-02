@@ -224,4 +224,3 @@ object LocationApptTableInfo extends BaseTableInfo[Location] {
     transformed
   }
 }
-
