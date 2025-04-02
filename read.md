@@ -142,7 +142,6 @@ import com.optum.ove.common.etl.cdrbe.LocationApptTableInfo
 import com.optum.ove.common.etl.framework.QueryTestFramework
 import com.optum.ove.common.models._
 import com.optum.ove.common.utils.CommonRuntimeVariables
-import org.apache.spark.sql.SparkSession
 
 import java.sql.Timestamp
 
@@ -152,8 +151,11 @@ class LocationApptTableInfoTest extends QueryTestFramework {
 
   import spark.implicits._
 
-  val runtimeVariables = CommonRuntimeVariables(setupDtm = Timestamp.valueOf("2024-11-26 13:35:45.318").toLocalDateTime)
+  val runtimeVariables = CommonRuntimeVariables(
+    setupDtm = Timestamp.valueOf("2024-11-26 13:35:45.318").toLocalDateTime
+  )
 
+  // 🔹 Mock input data
   val zhApptLocationDF = mkDataFrame(
     zh_appt_location(
       client_ds_id = 101,
@@ -169,17 +171,21 @@ class LocationApptTableInfoTest extends QueryTestFramework {
     )
   )
 
+  // 🔹 Input Map
   val loadedDependencies = Map(
     "zh_appt_location" -> zhApptLocationDF
   )
 
+  // 🔹 Expected Output
   val expectedOutput = Seq(
     Location(
       id = Identifier.createIdentifier(
         "101-LOC001",
         "101",
         "usual",
-        CodeableConcept.createCodeableConcept(Seq(Coding("CDR:101", "auto-gen", "Generated ID")))
+        CodeableConcept.createCodeableConcept(
+          Seq(Coding("CDR:101", "auto-gen", "Generated ID"))
+        )
       ),
       meta = Meta.createMeta(Timestamp.valueOf("2024-11-26 13:35:45.318")),
       name = "Apollo Clinic - Delhi",
@@ -198,23 +204,27 @@ class LocationApptTableInfoTest extends QueryTestFramework {
         ContactPoint(system = "phone", value = "+91-9999999999", use = "work")
       ),
       types = Seq(
-        CodeableConcept.createCodeableConcept(Seq(
-          Coding("http://hl7.org/fhir/R4/codesystem-service-place.html", "11", "Office")
-        ))
+        CodeableConcept.createCodeableConcept(
+          Seq(Coding("http://hl7.org/fhir/R4/codesystem-service-place.html", "11", "Office"))
+        )
       ),
       physicalType = null,
-      managingOrganization = Reference.createReference(null, "Organization", "ORG001", null, null, "CDR"),
-      partOf = Reference.createReference(null, "Location", "PLOC001", null, null, "CDR"),
+      managingOrganization = Reference.createReference(
+        null, "Organization", "ORG001", null, null, "CDR"
+      ),
+      partOf = Reference.createReference(
+        null, "Location", "PLOC001", null, null, "CDR"
+      ),
       extension = null
     )
   )
 
+  // 🔹 Run the test
   testQuery(
-    testName = "have expected output given input",
+    testName = "should return expected FHIR Location given the input zh_appt_location row",
     query = LocationApptTableInfo,
     inputs = loadedDependencies,
     expectedOutput = expectedOutput,
     runtimeVariables = runtimeVariables
   )
 }
-
