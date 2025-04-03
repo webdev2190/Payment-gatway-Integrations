@@ -134,7 +134,7 @@ class AllergyTableInfoTest extends QueryTestFramework {
 }
 
 ---------------------------------------------------------------
-LocationApptInfoTest
+LocationApptTableInfoTest
 
 import com.optum.insights.smith.fhir.Location
 import com.optum.insights.smith.fhir.datatypes._
@@ -142,7 +142,6 @@ import com.optum.ove.common.etl.cdrbe.LocationApptTableInfo
 import com.optum.ove.common.etl.framework.QueryTestFramework
 import com.optum.ove.common.models._
 import com.optum.ove.common.utils.CommonRuntimeVariables
-
 import java.sql.Timestamp
 
 class LocationApptTableInfoTest extends QueryTestFramework {
@@ -176,13 +175,14 @@ class LocationApptTableInfoTest extends QueryTestFramework {
 
   val expectedOutput = Seq(
     Location(
-      id = Identifier.createIdentifier(
-        "101-LOC001",
-        "101",
-        "usual",
-        CodeableConcept.createCodeableConcept(
-          Seq(Coding("CDR:101", "auto-gen", "Generated ID"))
-        )
+      id = Identifier(
+        use = "usual",
+        `type` = CodeableConcept.createCodeableConcept(
+          Seq(Coding("CDR:101APPTLOC", null, null))
+        ),
+        system = "CDR:101APPTLOC",
+        value = "LOC001",
+        period = null
       ),
       meta = Meta.createMeta(Timestamp.valueOf("2024-11-26 13:35:45.318")),
       name = "Apollo Clinic - Delhi",
@@ -206,12 +206,12 @@ class LocationApptTableInfoTest extends QueryTestFramework {
         )
       ),
       physicalType = null,
-      managingOrganization = Reference.createReference(
-        null, "Organization", "ORG001", null, null, "CDR"
-      ),
-      partOf = Reference.createReference(
-        null, "Location", "PLOC001", null, null, "CDR"
-      ),
+      managingOrganization = Reference.createReference(null, "Organization", "ORG001", null, null, "CDR"),
+      partOf = Reference.createReference(null, "Location", "PLOC001", null, null, "CDR"),
+      updated = null,
+      identifiers = Seq.empty,
+      alias = Seq.empty,
+      operationalStatus = null,
       extension = null
     )
   )
@@ -223,4 +223,4 @@ class LocationApptTableInfoTest extends QueryTestFramework {
     expectedOutput = expectedOutput,
     runtimeVariables = runtimeVariables
   )
-}
+} 
