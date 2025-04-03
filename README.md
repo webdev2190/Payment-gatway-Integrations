@@ -218,7 +218,6 @@ object LocationApptTableInfo extends BaseTableInfo[Location] {
   }
 }
 
-
 ==============================================================================================================
 Data Mapping 
 id	C	E	T	element	datatype	datatype2	datatype3	datatype4	desc	comment/notes	cdr be table	column	ETL Notes	
