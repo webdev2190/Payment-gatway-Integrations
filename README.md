@@ -128,6 +128,8 @@ LocationAppt Code
 
 package com.optum.ove.common.etl.cdrbe
 
+package com.optum.ove.common.etl.cdrbe
+
 import com.optum.insights.smith.fhir.Location
 import com.optum.insights.smith.fhir.datatypes._
 import com.optum.oap.sparkdataloader.{RuntimeVariables, UserDefinedFunctionForDataLoader}
@@ -143,10 +145,7 @@ object LocationApptTableInfo extends BaseTableInfo[Location] {
 
   override def name: String = "LOCATION_APPT"
 
-  override def dependsOn: Set[String] = Set(
-    "zh_appt_location"
-    // Add mapping tables here if needed (e.g., MAP_PHYSICAL_TYPE)
-  )
+  override def dependsOn: Set[String] = Set("zh_appt_location")
 
   override protected def createDataFrame(spark: SparkSession,
                                          loadedDependencies: Map[String, DataFrame],
@@ -160,28 +159,26 @@ object LocationApptTableInfo extends BaseTableInfo[Location] {
     val locationDF = loadedDependencies("zh_appt_location").as("loc")
 
     val transformed = locationDF.select(
-      // ID
-      createIdentifierWithCodeableConceptUDF(
-        concat_ws("-", col("loc.client_ds_id"), col("loc.locationid")),
-        col("loc.client_ds_id"),
-        lit("usual"),
-        lit(""),
-        concat(lit("CDR:"), col("loc.client_ds_id")),
-        lit("auto-gen"),
-        lit("Generated ID")
+      // ID - mapped fields
+      struct(
+        lit("usual").as("use"),
+        CodeableConcept.createCodeableConcept(
+          Seq(Coding(concat(lit("CDR:"), col("loc.client_ds_id"), lit("APPTLOC")), null, null))
+        ).as("`type`"),
+        concat(lit("CDR:"), col("loc.client_ds_id"), lit("APPTLOC")).as("system"),
+        col("loc.locationid").as("value"),
+        lit(null).cast(Encoders.product[Period].schema).as("period")
       ).as("id"),
 
       // Meta
       typedLit(rowToMeta(lit(setupDtmTimestamp))).as("meta"),
 
-      // Name
+      // Name and Description
       col("loc.locationname").as("name"),
+      col("loc.locationname").as("description"),
 
       // Status
       lit("active").as("status"),
-
-      // Description
-      col("loc.locationname").as("description"),
 
       // Address
       struct(
@@ -194,7 +191,7 @@ object LocationApptTableInfo extends BaseTableInfo[Location] {
         lit("physical").as("type")
       ).as("address"),
 
-      // Telecom (if available)
+      // Telecom
       array(
         struct(
           lit("phone").as("system"),
@@ -203,27 +200,26 @@ object LocationApptTableInfo extends BaseTableInfo[Location] {
         )
       ).as("telecom"),
 
-      // Types (Optional, hardcoded to Office)
+      // Types
       typedLit(Seq(CodeableConcept.createCodeableConcept(
         Seq(Coding("http://hl7.org/fhir/R4/codesystem-service-place.html", "11", "Office"))
       ))).as("types"),
 
-      // PhysicalType (Optional)
+      // Optional fields
       lit(null).cast(Encoders.product[CodeableConcept].schema).as("physicalType"),
-
-      // Managing Organization (Optional)
       createReferenceUDF(lit("Organization"), col("loc.org_id"), lit("CDR"), lit(null)).as("managingOrganization"),
-
-      // Part of (Optional)
       createReferenceUDF(lit("Location"), col("loc.parent_location_id"), lit("CDR"), lit(null)).as("partOf"),
-
-      // Extensions (Optional)
+      lit(null).cast(TimestampType).as("updated"),
+      array().cast(ArrayType(Encoders.product[Identifier].schema)).as("identifiers"),
+      array().cast(ArrayType(Encoders.STRING)).as("alias"),
+      lit(null).cast(Encoders.product[Coding].schema).as("operationalStatus"),
       lit(null).cast(ArrayType(Encoders.product[Extension].schema)).as("extension")
     )
 
     transformed
   }
 }
+
 ==============================================================================================================
 Data Mapping 
 id	C	E	T	element	datatype	datatype2	datatype3	datatype4	desc	comment/notes	cdr be table	column	ETL Notes	
