@@ -224,3 +224,4 @@ class LocationApptTableInfoTest extends QueryTestFramework {
     runtimeVariables = runtimeVariables
   )
 } 
+ 
