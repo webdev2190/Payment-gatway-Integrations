@@ -126,10 +126,6 @@ object AllergyTableInfo extends BaseTableInfo[Allergy] {
 
 LocationAppt Code
 
-package com.optum.ove.common.etl.cdrbe
-
-package com.optum.ove.common.etl.cdrbe
-
 import com.optum.insights.smith.fhir.Location
 import com.optum.insights.smith.fhir.datatypes._
 import com.optum.oap.sparkdataloader.{RuntimeVariables, UserDefinedFunctionForDataLoader}
@@ -159,12 +155,14 @@ object LocationApptTableInfo extends BaseTableInfo[Location] {
     val locationDF = loadedDependencies("zh_appt_location").as("loc")
 
     val transformed = locationDF.select(
-      // ID - mapped fields
+      // ID using valid CodeableConcept logic
       struct(
         lit("usual").as("use"),
-        CodeableConcept.createCodeableConcept(
-          Seq(Coding(concat(lit("CDR:"), col("loc.client_ds_id"), lit("APPTLOC")), null, null))
-        ).as("`type`"),
+        createCodeableConceptUDF(array(struct(
+          concat(lit("CDR:"), col("loc.client_ds_id"), lit("APPTLOC")),
+          lit(null),
+          lit(null)
+        ))).as("type"),
         concat(lit("CDR:"), col("loc.client_ds_id"), lit("APPTLOC")).as("system"),
         col("loc.locationid").as("value"),
         lit(null).cast(Encoders.product[Period].schema).as("period")
@@ -219,6 +217,7 @@ object LocationApptTableInfo extends BaseTableInfo[Location] {
     transformed
   }
 }
+
 
 ==============================================================================================================
 Data Mapping 
