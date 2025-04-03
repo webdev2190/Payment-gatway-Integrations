@@ -224,3 +224,46 @@ object LocationApptTableInfo extends BaseTableInfo[Location] {
     transformed
   }
 }
+==============================================================================================================
+Data Mapping
+id	C	E	T	element	datatype	datatype2	datatype3	datatype4	desc	comment/notes	cdr be table	column	ETL Notes
+				updated	DateTime				Time of last update	For the transaction layer, this is the date of the transaction.  For the current state, it's the date of the last transaction.			
+				id	Identifier				Unique identifier of this particular location				
+						use : String,							""
+						type: CodeableConcept							""
+							system: String						
+							version: String						
+							value: Code						
+							display: String						
+							validated: Boolean						
+						system : String					zh_appt_location	client_ds_id	"CDR:"+client_ds_id+"APPTLOC"
+						value : String					zh_appt_location	locationid	
+						period : Period							""
+							start: Timestamp						
+							end: Timestamp						
+				identifiers	List[Identifier]								""
+						use : String,							
+						type: CodeableConcept							
+							system: String						
+							version: String						
+							value: Code						
+							display: String						
+							validated: Boolean						
+						system : String							
+						value : String							
+						period : Period							
+							start: Timestamp						
+							end: Timestamp						
+				status	Code				The current status of the location	Active / Inactive			""
+						String							
+				operationalStatus	Coding				The operation status of the location	Typically it's only for Beds and I don't think we'll have to encode that level for MVP.			""
+						system: String							
+						version: String							
+						value: Code							
+						display: String							
+						validated: Boolean							
+				name	String				Human-readable name	Display-only, should not be used for computation.	zh_appt_location	locationname	
+				alias	List[String]								""
+
+
+
