@@ -1,3 +1,9 @@
+create a dataframe for zh_appt_location with data from Athena table 
+zh_appt_location
+
+
+
+
 AllergyTableInfoTest
 
 import com.optum.insights.smith.fhir.Allergy
@@ -224,4 +230,6 @@ class LocationApptTableInfoTest extends QueryTestFramework {
     runtimeVariables = runtimeVariables
   )
 } 
+
+
  
