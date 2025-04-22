@@ -433,3 +433,11 @@ class L1LocationApptTableInfoTest extends QueryTestFramework {
     runtimeVariables = runtimeVariables
   )
 }
+
+============================================================
+Error Note
+
+C:\Users\ahaldar1\repo\ove-common-etl\common-etl\src\main\scala\com\optum\ove\common\etl\cdrbe\LocationApptTableInfo.scala:89:18
+too many arguments (2) for method apply: (coding: Seq[com.optum.insights.smith.fhir.datatypes.Coding])com.optum.insights.smith.fhir.datatypes.CodeableConcept in object CodeableConcept
+Note that 'text' is not a parameter name of the invoked method.
+            text = null
