@@ -293,7 +293,7 @@ object L1LocationApptTableInfo extends TableInfo[Location] {
           ),
           meta = Meta.createMeta(setupDtmTimestamp),
           ids = null,
-          status = "active", // Defaulting to active as per common practice
+          status = "active",
           operationalStatus = null,
           name = row.getAs[String]("locationname"),
           alias = List.empty[String],
@@ -302,7 +302,7 @@ object L1LocationApptTableInfo extends TableInfo[Location] {
           types = List(CodeableConcept(
             coding = List(Coding(
               system = "http://www.hl7.org/fhir/R4/codesystem-service-place.html",
-              code = "office", // Defaulting to office, can be customized based on data
+              code = "office",
               display = "Office"
             )),
             text = null
@@ -316,13 +316,13 @@ object L1LocationApptTableInfo extends TableInfo[Location] {
             district = null,
             state = row.getAs[String]("state"),
             postalCode = row.getAs[String]("zipcode"),
-            country = "US", // Defaulting to US, can be parameterized
+            country = "US",
             period = null
           ),
           physicalType = CodeableConcept(
             coding = List(Coding(
               system = "http://terminology.hl7.org/CodeSystem/location-physical-type",
-              code = "bu", // Defaulting to building
+              code = "bu",
               display = "Building"
             )),
             text = null
@@ -339,3 +339,97 @@ object L1LocationApptTableInfo extends TableInfo[Location] {
 }
 
 =============================================
+LocationApptTableInfotest
+
+import com.optum.insights.smith.fhir.Location
+import com.optum.insights.smith.fhir.datatypes._
+import com.optum.oap.cdr.models.zh_appt_location
+import com.optum.ove.common.etl.framework.QueryTestFramework
+import com.optum.ove.common.utils.CommonRuntimeVariables
+
+import java.sql.Timestamp
+
+class L1LocationApptTableInfoTest extends QueryTestFramework {
+
+  behavior of "L1LocationApptTableInfo"
+
+  import spark.implicits._
+
+  val runtimeVariables = CommonRuntimeVariables(setupDtm = Timestamp.valueOf("2024-11-26 13:35:45.318").toLocalDateTime)
+
+  val zhApptLocationDF = mkDataFrame(
+    zh_appt_location(
+      client_ds_id = 10628,
+      locationid = "LOC456",
+      locationname = "Test Appointment Location",
+      address1 = "456 Appointment Ave",
+      city = "Appointment City",
+      state = "AP",
+      zipcode = "67890"
+    )
+  )
+
+  val loadedDependencies = Map(
+    "ZH_APPT_LOCATION" -> zhApptLocationDF
+  )
+
+  val expectedOutput = Seq(
+    Location(
+      id = Identifier(
+        use = null,
+        `type` = null,
+        system = "CDR:10628APPTLOC",
+        value = "LOC456",
+        period = null
+      ),
+      meta = Meta.createMeta(Timestamp.valueOf("2024-11-26 13:35:45.318")),
+      ids = null,
+      status = "active",
+      operationalStatus = null,
+      name = "Test Appointment Location",
+      alias = List.empty[String],
+      characteristics = null,
+      description = null,
+      types = List(CodeableConcept(
+        coding = List(Coding(
+          system = "http://www.hl7.org/fhir/R4/codesystem-service-place.html",
+          code = "office",
+          display = "Office"
+        )),
+        text = null
+      )),
+      telecoms = null,
+      address = Address(
+        use = "work",
+        `type` = "physical",
+        line = List("456 Appointment Ave"),
+        city = "Appointment City",
+        district = null,
+        state = "AP",
+        postalCode = "67890",
+        country = "US",
+        period = null
+      ),
+      physicalType = CodeableConcept(
+        coding = List(Coding(
+          system = "http://terminology.hl7.org/CodeSystem/location-physical-type",
+          code = "bu",
+          display = "Building"
+        )),
+        text = null
+      ),
+      position = null,
+      managingOrg = null,
+      partOf = null,
+      extensions = null
+    )
+  )
+
+  testQuery(
+    testName = "should transform appointment location data correctly",
+    query = L1LocationApptTableInfo,
+    inputs = loadedDependencies,
+    expectedOutput = expectedOutput,
+    runtimeVariables = runtimeVariables
+  )
+}
