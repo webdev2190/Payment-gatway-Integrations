@@ -121,3 +121,124 @@ object L1LocationFacTableInfo extends TableInfo[Location] {
 
   }
 }
+
+===========================================================================
+LocationApptTableInfo
+
+import com.optum.insights.smith.fhir.Location
+import com.optum.insights.smith.fhir.datatypes._
+import com.optum.oap.sparkdataloader.{TableInfo, RuntimeVariables, UserDefinedFunctionForDataLoader}
+import com.optum.ove.common.utils.CommonRuntimeVariables
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.{DataFrame, SparkSession, Encoders}
+
+import java.sql.Timestamp
+
+object L1LocationApptTableInfo extends TableInfo[Location] {
+
+  override def name: String = "l1_location_appointment"
+
+  override def dependsOn: Set[String] = Set("ZH_APPT_LOCATION")
+
+  override protected def createDataFrame(
+    sparkSession: SparkSession,
+    loadedDependencies: Map[String, DataFrame],
+    udfMap: Map[String, UserDefinedFunctionForDataLoader],
+    runtimeVariables: RuntimeVariables
+  ): DataFrame = {
+    createLocationApptDataFrame(sparkSession, loadedDependencies, udfMap, runtimeVariables)
+  }
+
+  private def createLocationApptDataFrame(
+    sparkSession: SparkSession,
+    loadedDependencies: Map[String, DataFrame],
+    udfMap: Map[String, UserDefinedFunctionForDataLoader],
+    runtimeVariables: RuntimeVariables
+  ): DataFrame = {
+
+    val ClientDsIdColumn = "Z.client_ds_id"
+    val LocationIdColumn = "Z.locationid"
+    val LocationNameColumn = "Z.locationname"
+    val Address1Column = "Z.address1"
+    val CityColumn = "Z.city"
+    val StateColumn = "Z.state"
+    val PostalCodeColumn = "Z.zipcode"
+
+    val setupDtmTimestamp = Timestamp.valueOf(CommonRuntimeVariables(runtimeVariables).setupDtm)
+
+    val zhApptLocationDF = loadedDependencies("ZH_APPT_LOCATION").as("Z")
+      .select(
+        col(ClientDsIdColumn),
+        col(LocationIdColumn),
+        col(LocationNameColumn),
+        col(Address1Column),
+        col(CityColumn),
+        col(StateColumn),
+        col(PostalCodeColumn)
+      ).distinct()
+
+    val finalLocationApptDF = zhApptLocationDF
+      .select(
+        col(ClientDsIdColumn).cast("string").as("client_ds_id"),
+        col(LocationIdColumn).cast("string").as("locationid"),
+        col(LocationNameColumn).as("locationname"),
+        col(Address1Column).as("address1"),
+        col(CityColumn).as("city"),
+        col(StateColumn).as("state"),
+        col(PostalCodeColumn).as("zipcode")
+      )
+      .map(row => {
+        Location(
+          id = Identifier(
+            use = null,
+            `type` = null,
+            system = s"CDR:${row.getAs[String]("client_ds_id")}APPTLOC",
+            value = row.getAs[String]("locationid"),
+            period = null
+          ),
+          meta = Meta.createMeta(setupDtmTimestamp),
+          ids = null,
+          status = "active", // Defaulting to active as per common practice
+          operationalStatus = null,
+          name = row.getAs[String]("locationname"),
+          alias = List.empty[String],
+          characteristics = null,
+          description = null,
+          types = List(CodeableConcept(
+            coding = List(Coding(
+              system = "http://www.hl7.org/fhir/R4/codesystem-service-place.html",
+              code = "office", // Defaulting to office, can be customized based on data
+              display = "Office"
+            )),
+            text = null
+          )),
+          telecoms = null,
+          address = Address(
+            use = "work",
+            `type` = "physical",
+            line = List(row.getAs[String]("address1")),
+            city = row.getAs[String]("city"),
+            district = null,
+            state = row.getAs[String]("state"),
+            postalCode = row.getAs[String]("zipcode"),
+            country = "US", // Defaulting to US, can be parameterized
+            period = null
+          ),
+          physicalType = CodeableConcept(
+            coding = List(Coding(
+              system = "http://terminology.hl7.org/CodeSystem/location-physical-type",
+              code = "bu", // Defaulting to building
+              display = "Building"
+            )),
+            text = null
+          ),
+          position = null,
+          managingOrg = null,
+          partOf = null,
+          extensions = null
+        )
+      })(Encoders.product[Location])
+
+    finalLocationApptDF.toDF()
+  }
+}
