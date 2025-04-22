@@ -122,6 +122,101 @@ object L1LocationFacTableInfo extends TableInfo[Location] {
   }
 }
 
+===================================================================================
+LocatioFacTableInfotest Code
+
+import com.optum.insights.smith.fhir.Location
+import com.optum.insights.smith.fhir.datatypes._
+import com.optum.oap.cdr.models.{zh_facility,zh_facility_rollup}
+import com.optum.ove.common.etl.framework.QueryTestFramework
+import com.optum.ove.common.utils.CommonRuntimeVariables
+
+import java.sql.Timestamp
+
+class L1LocationFacTableInfoTest extends QueryTestFramework {
+
+  behavior of "L1LocationFacTableInfo"
+
+  import spark.implicits._
+
+  val runtimeVariables = CommonRuntimeVariables(setupDtm = Timestamp.valueOf("2024-11-26 13:35:45.318").toLocalDateTime)
+
+  val zhFacilityDF = mkDataFrame(
+    zh_facility(
+      client_ds_id = 10628,
+      facilityid = "FAC123",
+      facilityname = "Test Facility",
+      address1 = "123 Test St",
+      city = "Test City",
+      state = "TS",
+      facilitypostalcd = "12345"
+    )
+  )
+
+  val zhFacilityRollupDF = mkDataFrame(
+    zh_facility_rollup(
+      client_ds_id = 10628,
+      facility_id = "FAC123",
+      siteofcare_name = "Test Site of Care",
+      master_facility_name = "Master Facility"
+    )
+  )
+
+  val loadedDependencies = Map(
+    "ZH_FACILITY" -> zhFacilityDF,
+    "ZH_FACILITY_ROLLUP" -> zhFacilityRollupDF
+  )
+
+  val expectedOutput = Seq(
+    Location(
+      id = Identifier(
+        use = null,
+        `type` = null,
+        system = "CDR:10628",
+        value = "FAC123-10628",
+        period = null
+        // assigner = null
+      ),
+      meta = Meta.createMeta(Timestamp.valueOf("2024-11-26 13:35:45.318")),
+      ids = null,
+      status = null,
+      operationalStatus = null,
+      name = ("Test Facility"),
+      alias = List("Test Site of Care", "Master Facility"),
+      characteristics = null,
+      description = null,
+      types = null,
+      telecoms = null,
+      address = Address(
+        use = null,
+        `type` = null,
+        line = List("123 Test St"),
+        city = "Test City",
+        district = null,
+        state = "TS",
+        postalCode = "12345",
+        country = null,
+        period = null
+
+      ),
+      physicalType = null,
+      position = null,
+      managingOrg = null,
+      partOf = null,
+      extensions = null
+    )
+  )
+
+  testQuery(
+    testName = "have expected output given input",
+    query = L1LocationFacTableInfo,
+    inputs = loadedDependencies,
+    expectedOutput = expectedOutput,
+    runtimeVariables = runtimeVariables
+  )
+
+}
+
 ===========================================================================
 LocationApptTableInfo
 
@@ -242,3 +337,5 @@ object L1LocationApptTableInfo extends TableInfo[Location] {
     finalLocationApptDF.toDF()
   }
 }
+
+=============================================
