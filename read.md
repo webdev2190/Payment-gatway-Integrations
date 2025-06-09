@@ -1,235 +1,232 @@
-create a dataframe for zh_appt_location with data from Athena table 
-zh_appt_location
+buildscript {
+    repositories {
+        maven {
+            url 'https://repo1.uhc.com/artifactory/repoauth'
+            credentials {
+//                username = System.getenv(runx_ohhlload)
+//                password = System.getenv(ohLOA35U)
+                username = "runx_ohhlload";
+                password = "ohLOA35U";
+            }
+        }
+    }
+//TODO Java 21 Up gradation and change the spring boot version to 3.2.5
+
+    plugins {
+        id 'org.springframework.boot' version '3.2.5'
+        id 'io.spring.dependency-management' version '1.1.4'
+        id 'java'
+    }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+    repositories {
+        mavenCentral()
+    }
 
 
 
-
-AllergyTableInfoTest
-
-import com.optum.insights.smith.fhir.Allergy
-import com.optum.insights.smith.fhir.datatypes._
-import com.optum.oap.cdr.models._
-import com.optum.ove.common.etl.framework.QueryTestFramework
-import com.optum.ove.common.models.xwalk_map
-import com.optum.ove.common.utils.CommonRuntimeVariables
-
-import java.sql.Timestamp
-
-class AllergyTableInfoTest extends QueryTestFramework {
-
-  behavior of "ALLERGY"
-
-  import spark.implicits._
-
-  val runtimeVariables = CommonRuntimeVariables(setupDtm = Timestamp.valueOf("2024-11-26 13:35:45.318").toLocalDateTime)
-
-  val allergyDF = mkDataFrame(
-    com.optum.oap.cdr.models.allergy(
-      client_ds_id = 10628,
-      localallergencd = "GABAPENTINOIDS / BENZODIAZEPINES",
-      localallergentype = "10628.a.8",
-      grp_mpi = "1390409554",
-      onsetdate = Timestamp.valueOf("2019-10-03 18:06:00.000"),
-      localstatus = "Test Local Status",
-      localallergendesc = "GABAPENTINOIDS / BENZODIAZEPINES",
-      dcc = "20601",
-      encounterid = "c96aec0a6721377f64fcf6b1b49f95"
-    )
-  )
-
-  val mapAllergenDF = mkDataFrame(
-    map_allergen(
-      mnemonic = "Test Local Status",
-      cui = "CH002030"
-    )
-  )
-
-  val mapAllergenTypeDF = mkDataFrame(
-    map_allergen_type(
-      localcode = "10628.a.8",
-      cui = "CH002030"
-    )
-  )
-
-  val mapAllergyStatusDF = mkDataFrame(
-    map_allergy_status(
-      mnemonic = "Test Local Status",
-      cui = "CH002030"
-    )
-  )
-
-  val mvHtsDomainConceptDF = mkDataFrame(
-    mv_hts_domain_concept(
-      concept_cui = "CH002030",
-      concept_name = "Test Local Status"
-    )
-  )
-
-  val refHtsDccCurrentDF = mkDataFrame(
-    ref_hts_dcc_current(
-      dcc = "20601",
-      genericname = "Zavegepant",
-      pcc = "166",
-      pcc_label = "Mitotic inhibitors, taxanes"
-    )
-  )
-
-  val xwalk_mapDF = mkDataFrame(
-    xwalk_map(
-      domain = "allergy",
-      sourceAttribute = "clinicalStatus",
-      sourceSystem = "cui",
-      sourceCode = "CH002030",
-      sourceDescription = "Active (Allergy Status)",
-      targetSystem = "fhirClinicalStatus",
-      targetDescription = "Active",
-      targetCode = "active"
-    ),
-    xwalk_map(
-      domain = "allergy",
-      sourceAttribute = "category",
-      sourceSystem = "cui",
-      sourceCode = "CH002030",
-      sourceDescription = "Resolved (Allergy Status)",
-      targetSystem = "fhirClinicalStatus",
-      targetDescription = "active",
-      targetCode = "active"
-    )
-  )
-
-  val loadedDependencies = Map(
-    "ALLERGY_SRC" -> allergyDF,
-    "MAP_ALLERGEN" -> mapAllergenDF,
-    "MAP_ALLERGEN_TYPE" -> mapAllergenTypeDF,
-    "MAP_ALLERGY_STATUS" -> mapAllergyStatusDF,
-    "MV_HTS_DOMAIN_CONCEPT" -> mvHtsDomainConceptDF,
-    "REF_HTS_DCC_CURRENT" -> refHtsDccCurrentDF,
-    "XWALK_MAP" -> xwalk_mapDF
-  )
-
-
-  val expectedOutput = Seq(
-    Allergy(
-      id = Identifier.createIdentifier("10628GABAPENTINOIDS / BENZODIAZEPINES10628.a.813904095542019-10-03 18:06:00.000Test Local StatusGABAPENTINOIDS / BENZODIAZEPINES20601c96aec0a6721377f64fcf6b1b49f95", "10628", "usual", CodeableConcept.createCodeableConcept(Seq(Coding("CDR:10628", "concatenated", "a concated key as there is no PK on the data")))),
-      meta = Meta.createMeta(Timestamp.valueOf("2024-11-26 13:35:45.318")),
-      ids = null,
-      clinicalStatus = CodeableConcept.createCodeableConcept(Seq(Coding("CDR:10628", "active"))),
-      verificationStatus = null,
-      `type` = CodeableConcept.createCodeableConcept(Seq(Coding(null, "allergy"))),
-      category = CodeableConcept.createCodeableConcept(Seq(Coding("CDR:10628", "active"))),
-      criticality = null,
-      code = CodeableConcept.createCodeableConcept(Seq(Coding("CDR:10628", "GABAPENTINOIDS / BENZODIAZEPINES", "GABAPENTINOIDS / BENZODIAZEPINES"), null, Coding("DCC", "20601", "Zavegepant"), null)),
-      patient = Reference.createReference(null, "patient", "1390409554", null, null, "CDR"),
-      encounter = Reference.createReference(null, "encounter", "c96aec0a6721377f64fcf6b1b49f95", null, null, "CDR:10628"),
-      onset = TimeType.createTimeType(null, null, null),
-      recordedDate = Timestamp.valueOf("2019-10-03 18:06:00.000"),
-      recorder = null,
-      lastOccurrence = null,
-      notes = null,
-      extension = null
-    )
-  )
-
-  testQuery(
-    testName = "have expected output given input",
-    query = AllergyTableInfo,
-    inputs = loadedDependencies,
-    expectedOutput = expectedOutput,
-    runtimeVariables = runtimeVariables
-  )
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.7.20.optum-2")
+        classpath ("io.spring.gradle:dependency-management-plugin:1.0.15.RELEASE")
+        classpath ("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.7")
+    }
 }
 
----------------------------------------------------------------
-LocationApptTableInfoTest
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'org.sonarqube'
 
-import com.optum.insights.smith.fhir.Location
-import com.optum.insights.smith.fhir.datatypes._
-import com.optum.ove.common.etl.cdrbe.LocationApptTableInfo
-import com.optum.ove.common.etl.framework.QueryTestFramework
-import com.optum.ove.common.models._
-import com.optum.ove.common.utils.CommonRuntimeVariables
-import java.sql.Timestamp
+version =  '0.1.0'
+bootJar {
+    archiveBaseName.set('pure-service')
+}
 
-class LocationApptTableInfoTest extends QueryTestFramework {
+///springboot 2.7.x creates *-plain.jar; disable so that the build only create jar from bootJar
+jar {
+    enabled = false
+}
 
-  behavior of "LOCATION_APPT"
+repositories {
+    maven {
+        url 'https://repo1.uhc.com/artifactory/repoauth'
+        credentials {
+//                username = System.getenv(runx_ohhlload)
+//                password = System.getenv(ohLOA35U)
+            username = "runx_ohhlload";
+            password = "ohLOA35U";
+        }
+    }
+    maven {
+        url 'https://repo1.uhc.com/artifactory/libs-releases/'
+    }
+    maven {
+        url 'https://repo1.uhc.com/artifactory/UHG-Snapshots/com/optum/'
+        metadataSources {
+            artifact() }
+    }
+}
 
-  import spark.implicits._
+configurations {
+    jacoco
+    jacocoRuntime
+}
 
-  val runtimeVariables = CommonRuntimeVariables(
-    setupDtm = Timestamp.valueOf("2024-11-26 13:35:45.318").toLocalDateTime
-  )
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
-  val zhApptLocationDF = mkDataFrame(
-    zh_appt_location(
-      client_ds_id = 101,
-      locationid = "LOC001",
-      locationname = "Apollo Clinic - Delhi",
-      address1 = "123 Health Street",
-      city = "New Delhi",
-      state = "Delhi",
-      zipcode = "110001",
-      phone_number = "+91-9999999999",
-      org_id = "ORG001",
-      parent_location_id = "PLOC001"
-    )
-  )
+dependencyManagement {
+    imports {
+            mavenBom 'com.amazonaws:aws-java-sdk-bom:1.12.734'
+    }
+    resolutionStrategy {
+        cacheChangingModulesFor 0, 'seconds'
+    }
+}
 
-  val loadedDependencies = Map(
-    "zh_appt_location" -> zhApptLocationDF
-  )
-
-  val expectedOutput = Seq(
-    Location(
-      id = Identifier(
-        use = "usual",
-        `type` = CodeableConcept.createCodeableConcept(
-          Seq(Coding("CDR:101APPTLOC", null, null))
-        ),
-        system = "CDR:101APPTLOC",
-        value = "LOC001",
-        period = null
-      ),
-      meta = Meta.createMeta(Timestamp.valueOf("2024-11-26 13:35:45.318")),
-      name = "Apollo Clinic - Delhi",
-      status = "active",
-      description = "Apollo Clinic - Delhi",
-      address = Address(
-        line = Seq("123 Health Street"),
-        city = "New Delhi",
-        state = "Delhi",
-        postalCode = "110001",
-        country = "IN",
-        use = "work",
-        `type` = "physical"
-      ),
-      telecom = Seq(
-        ContactPoint(system = "phone", value = "+91-9999999999", use = "work")
-      ),
-      types = Seq(
-        CodeableConcept.createCodeableConcept(
-          Seq(Coding("http://hl7.org/fhir/R4/codesystem-service-place.html", "11", "Office"))
-        )
-      ),
-      physicalType = null,
-      managingOrganization = Reference.createReference(null, "Organization", "ORG001", null, null, "CDR"),
-      partOf = Reference.createReference(null, "Location", "PLOC001", null, null, "CDR"),
-      updated = null,
-      identifiers = Seq.empty,
-      alias = Seq.empty,
-      operationalStatus = null,
-      extension = null
-    )
-  )
-
-  testQuery(
-    testName = "should return expected FHIR Location given the input zh_appt_location row",
-    query = LocationApptTableInfo,
-    inputs = loadedDependencies,
-    expectedOutput = expectedOutput,
-    runtimeVariables = runtimeVariables
-  )
-} 
+sonarqube {
+    properties {
+        property 'sonar.projectName', 'pure'
+        property 'sonar.jacoco.reportPaths', 'build/jacoco/tests.exec'
+    }
+}
 
 
- 
+def gitBranch() {
+    def branch = ""
+    def proc = "git describe --all".execute()
+    proc.in.eachLine { line -> branch = line }
+    proc.err.eachLine { line -> println line }
+    proc.waitFor()
+    branch
+}
+print gitBranch()
+
+dependencies {
+    annotationProcessor "org.projectlombok:lombok:1.18.22"
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:9.0.105'
+    implementation 'org.springframework.boot:spring-boot-starter'
+//Todo Start Change the spring boot version to 3.2.5
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+//TODO End
+    implementation group: 'org.springframework.kafka', name: 'spring-kafka',version: '2.9.11'
+    implementation group: 'org.springframework', name: 'spring-web',version:'5.3.42.optum-1'
+    implementation group: 'org.springframework', name: 'spring-webmvc',version:'5.3.42'
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.734'
+    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
+    implementation group: 'javax.json', name: 'javax.json-api', version: '1.0-b01'
+    implementation group: 'com.google.code.gson', name: 'gson'
+    implementation group: 'org.glassfish', name: 'javax.json', version: '1.1'
+    //elastic rest high level client
+    implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.17.15'
+    implementation 'org.elasticsearch.client:elasticsearch-rest-client:7.17.15'
+//    TODO New Version
+    implementation 'org.elasticsearch.client:elasticsearch-rest-high-level-client:7.17.17'
+    implementation 'org.elasticsearch:elasticsearch:7.17.17'
+
+    // Logging (Log4j2) It is like track what your application is doing when it runs. kind of like a digital diary for your code.
+    implementation 'org.apache.logging.log4j:log4j-api:2.22.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.22.1'
+
+    // JSON handling (Gson and Jackson) sending data in json format.
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.17.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.17.0'
+
+    //JMockit dependencies (Testing)
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.17.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.17.0'
+
+    //Kafka dependencies
+    implementation group: 'org.apache.kafka', name: 'kafka-clients'
+    implementation 'org.springframework.kafka:spring-kafka:3.1.2' //New Version
+    implementation group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+    implementation group: 'org.json', name: 'json', version: '20231013'
+    testImplementation group: 'org.powermock', name: 'powermock-api-mockito', version: '1.6.5'
+    testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '1.6.5'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '1.10.19'
+    jacoco group: 'org.jacoco', name: 'org.jacoco.ant', version: '0.7.9', classifier: 'nodeps'
+    jacocoRuntime group: 'org.jacoco', name: 'org.jacoco.agent', version: '0.7.9', classifier: 'runtime'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations',version:'2.16.2'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core',version:'2.16.2'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind',version:'2.16.2'
+    testImplementation 'junit:junit:4.13.2'
+    implementation group: 'commons-io', name: 'commons-io', version: '2.8'
+//    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+    implementation 'org.xerial.snappy:snappy-java:1.1.10.4'
+    implementation 'ch.qos.logback:logback-core:1.2.13'
+    implementation 'ch.qos.logback:logback-classic:1.2.13'
+    implementation group: 'org.yaml', name:'snakeyaml', version:'2.0'
+    //PURE common lib dep
+    if(gitBranch().equals("heads/master") || gitBranch().equals("remotes/origin/master")) {
+        implementation group: 'ohhlpure.common.lib', name: 'ohhl-pure-shared-lib', version: '2.0-SNAPSHOT'
+    }else {
+        implementation group: 'ohhlpure.common.lib', name: 'ohhl-pure-shared-lib', version: '1.0-SNAPSHOT'
+    }
+}
+
+task instrument(dependsOn: ['classes']) {
+    ext.outputDir = file("${buildDir}/classes-instrumented")
+    doLast {
+        ant.taskdef(name: 'instrument',
+                classname: 'org.jacoco.ant.InstrumentTask',
+                classpath: configurations.jacoco.asPath)
+        ant.instrument(destdir: outputDir) {
+            fileset(dir: sourceSets.main.output.classesDirs.singleFile)
+        }
+    }
+}
+
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(instrument)) {
+        tasks.withType(Test) {
+            doFirst {
+                systemProperty 'jacoco-agent.destfile', buildDir.path + '/jacoco/tests.exec'
+                classpath = files(instrument.outputDir) + classpath + configurations.jacocoRuntime
+            }
+        }
+    }
+}
+
+task report(dependsOn: ['instrument', 'test']) {
+    doLast {
+        ant.taskdef(name: 'report',
+                classname: 'org.jacoco.ant.ReportTask',
+                classpath: configurations.jacoco.asPath)
+        ant.report() {
+            executiondata {
+                ant.file(file: buildDir.path + '/jacoco/tests.exec')
+            }
+            structure(name: 'Example') {
+                classfiles {
+                    fileset(dir: sourceSets.main.output.classesDirs.singleFile)
+                }
+                sourcefiles {
+                    fileset(dir: 'src/main/java')
+                }
+            }
+            xml(destfile: buildDir.path + '/reports/tests/jacocoTestReport.xml')
+        }
+    }
+}
+
+task copyDependencies {
+    doLast {
+        copy {
+            from configurations.compile
+            into 'dependencies'
+        }
+    }
+}v
