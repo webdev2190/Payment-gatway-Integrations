@@ -197,3 +197,17 @@ dependencies {
         useJUnitPlatform()
     }
 }
+fix this issue and giveme the updated build.gradle 
+
+Build file 'C:\Users\ahaldar1\pure-shared-lib\orx-ls-ohhl-pure-shared-lib\build.gradle' line: 18
+
+A problem occurred evaluating root project 'ohhl-pure-shared-lib'.
+> Could not find method java() for arguments [build_3ral9g6w9463ny3c75avkts4e$_run_closure1$_closure3@5b3b2abd] on object of type org.gradle.api.internal.initialization.DefaultScriptHandler_Decorated.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+BUILD FAILED in 280ms
+
