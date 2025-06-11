@@ -11,8 +11,6 @@ import com.optum.pure.filestore.impl.OOSSFileStore;
  * - Uses 'var' for local variable inference (where possible)
  * - Uses the modern double-checked locking pattern for better performance (avoids synchronizing every time)
  * - Comments included at every step
- *
- * @author Dwarakesh T P (Upgraded by ChatGPT)
  */
 public class FileStoreFactory {
 
