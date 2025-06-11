@@ -14,7 +14,7 @@ import java.io.IOException;
  * - Javadoc cleaned up for clarity.
  * - Uses generic types for flexibility, where appropriate.
  *
- * @author Dwarakesh T P (modernized for Java 21 by ChatGPT)
+ * @author Dwarakesh T P 
  */
 public interface FileStore {
 
