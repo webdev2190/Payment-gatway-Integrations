@@ -1,42 +1,51 @@
-package com.optum.pure.trackingstore.factory;
+package com.optum.pure.trackingstore;
 
-import com.optum.pure.common.RestElasticsearchClient;
-import com.optum.pure.trackingstore.TrackingStore;
-import com.optum.pure.trackingstore.impl.ESTrackingStore;
+import com.optum.pure.model.requestobjects.common.TrackingRecord;
+import com.optum.pure.model.entity.TrackingStatus;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
- * Factory class for Tracking store
+ * Interface for TrackingStore
  *
- * Modernized for Java 21:
- * - Use `volatile` keyword for the singleton instance to ensure visibility across threads
- * - Double-checked locking for efficient and thread-safe initialization of singleton
- * - Eliminated unnecessary synchronization by using `volatile` and double-checked locking
- * - Improved performance and thread safety
+ * @author Nandu
  */
-public class TrackingStoreFactory {
-    
-    // Use of volatile ensures visibility across threads without synchronization overhead
-    private static volatile TrackingStore trackingStore;
+public interface TrackingStore {
 
     /**
-     * Get the singleton instance of TrackingStore
-     * 
-     * This method uses double-checked locking to ensure thread-safety while avoiding the overhead
-     * of synchronization on every call.
-     * 
-     * @return the TrackingStore instance
+     * Retrieves the Tracking Status based on the provided TrackingId.
+     *
+     * @param trackingId the ID used to fetch the tracking status
+     * @return TrackingStatus object created using the corresponding TrackingRecord
+     * @throws IOException if there's an error during the tracking store query
      */
-    public static TrackingStore getTrackingStore() {
-        // First check without synchronization for performance
-        if (trackingStore == null) {
-            // Synchronize only when the instance is null
-            synchronized (TrackingStoreFactory.class) {
-                // Double-check to avoid redundant instantiation
-                if (trackingStore == null) {
-                    trackingStore = new ESTrackingStore(RestElasticsearchClient.getClient());
-                }
-            }
-        }
-        return trackingStore;
-    }
+    TrackingStatus getTrackingStatus(String trackingId) throws IOException;
+
+    /**
+     * Retrieves the full Tracking Record for the given TrackingId.
+     *
+     * @param trackingId the ID used to fetch the tracking record
+     * @return TrackingRecord object
+     * @throws IOException if there's an error during the tracking store query
+     */
+    TrackingRecord getTrackingRecord(String trackingId) throws IOException;
+
+    /**
+     * Inserts a new TrackingRecord into the TrackingStore.
+     *
+     * @param trackingRecord the record to be inserted
+     * @throws IOException if the insertion fails
+     */
+    void insertTrackingRecord(TrackingRecord trackingRecord) throws IOException;
+
+    /**
+     * Updates multiple fields in the TrackingRecord for the given TrackingId.
+     *
+     * @param trackingId the ID of the record to be updated
+     * @param fields     a list of field names to update
+     * @param values     a list of corresponding field values
+     * @throws IOException if the update fails
+     */
+    void updateRecord(String trackingId, List<String> fields, List<?> values) throws IOException;
 }
