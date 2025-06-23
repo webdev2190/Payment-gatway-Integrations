@@ -167,3 +167,125 @@ public class ESTrackingStore implements TrackingStore {
         }
     }
 }
+//==========================================Future Proof Code==================================
+
+package com.optum.pure.trackingstore.impl;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.optum.pure.common.ConfigurationManager;
+import com.optum.pure.model.entity.TrackingStatus;
+import com.optum.pure.model.requestobjects.common.TrackingRecord;
+import com.optum.pure.trackingstore.TrackingStore;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.xcontent.XContentBuilder;
+import org.elasticsearch.xcontent.XContentType;
+
+import java.io.IOException;
+import java.util.List;
+
+/**
+ * Java 21 Upgraded implementation of TrackingStore using Elasticsearch
+ */
+public final class ESTrackingStore implements TrackingStore {  // Modern: use `final` to ensure immutability and safety
+
+    private static final Logger LOG = LogManager.getLogger(ESTrackingStore.class);
+    private static final String ES_TRACKING_STORE_INDEX = ConfigurationManager.get("ES_TRACKING_STORE_INDEX");
+    private static final int RETRY_COUNT = 3;
+
+    // Use final for immutable ObjectMapper
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RestHighLevelClient client;  // Made final to follow immutability best practice
+
+    // Constructor with dependency injection
+    public ESTrackingStore(RestHighLevelClient client) {
+        this.client = client;
+    }
+
+    // Returns the tracking status using trackingId
+    @Override
+    public TrackingStatus getTrackingStatus(String trackingId) throws IOException {
+        return new TrackingStatus(trackingId, getTrackingRecord(trackingId).getStatus());
+    }
+
+    // Returns the full tracking record by querying ES
+    @Override
+    public TrackingRecord getTrackingRecord(String trackingId) throws IOException {
+        try {
+            SearchRequest request = new SearchRequest(ES_TRACKING_STORE_INDEX)
+                    .source(new SearchSourceBuilder().query(getSearchByTrackingIdQuery(trackingId)).fetchSource(null));
+            SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+
+            if (response.getHits().getHits().length > 0) {
+                return objectMapper.readValue(response.getHits().getAt(0).getSourceAsString(), TrackingRecord.class);
+            }
+            return new TrackingRecord();  // Return empty if no result
+        } catch (IOException e) {
+            LOG.error("Error while fetching/parsing trackingId {} from store", trackingId, e);
+            throw e;
+        }
+    }
+
+    // Elasticsearch query for filtering by trackingId
+    private BoolQueryBuilder getSearchByTrackingIdQuery(String trackingId) {
+        return QueryBuilders.boolQuery().filter(QueryBuilders.termQuery("trackingId", trackingId));
+    }
+
+    // Insert tracking record into Elasticsearch
+    @Override
+    public void insertTrackingRecord(TrackingRecord trackingRecord) throws IOException {
+        try {
+            IndexRequest request = new IndexRequest(ES_TRACKING_STORE_INDEX)
+                    .id(trackingRecord.getTrackingId())
+                    .source(new Gson().toJson(trackingRecord), XContentType.JSON);
+            client.index(request, RequestOptions.DEFAULT);
+            LOG.debug("Inserted tracking record for ID {}", trackingRecord.getTrackingId());
+        } catch (IOException e) {
+            LOG.error("Failed to insert trackingId {} in ES", trackingRecord.getTrackingId(), e);
+            throw e;
+        }
+    }
+
+    // Update multiple fields in tracking record
+    @Override
+    public void updateRecord(String trackingId, List<String> fields, List<?> values) throws IOException {
+        UpdateRequest updateRequest = new UpdateRequest()
+                .index(ES_TRACKING_STORE_INDEX)
+                .id(trackingId)
+                .retryOnConflict(RETRY_COUNT);
+
+        try {
+            XContentBuilder builder = buildUpdateDocument(fields, values);
+            updateRequest.doc(builder);
+
+            client.update(updateRequest, RequestOptions.DEFAULT);
+            LOG.debug("Updated tracking record for ID {}", trackingId);
+        } catch (IOException e) {
+            LOG.error("Update failed for trackingId {}", trackingId, e);
+            throw e;
+        }
+    }
+
+    // Extracted method to build JSON doc for update
+    private XContentBuilder buildUpdateDocument(List<String> fields, List<?> values) throws IOException {
+        try (XContentBuilder doc = org.elasticsearch.xcontent.XContentFactory.jsonBuilder()) {
+            doc.startObject();
+            for (int i = 0; i < fields.size(); i++) {
+                doc.field(fields.get(i), values.get(i));
+            }
+            doc.endObject();
+            return doc;
+        }
+    }
+}
+
