@@ -289,3 +289,11 @@ public final class ESTrackingStore implements TrackingStore {  // Modern: use `f
     }
 }
 
+| Area                 | Change                                                         | Reason                                                     |
+| -------------------- | -------------------------------------------------------------- | ---------------------------------------------------------- |
+| `final` class        | `public final class ESTrackingStore`                           | Prevents subclassing; improves security and predictability |
+| `final` fields       | `client`, `objectMapper`                                       | Better thread safety and design                            |
+| `try-with-resources` | Used for `XContentBuilder` (update doc)                        | Ensures resource cleanup, avoids memory leaks              |
+| Logging              | Unified `LOG.error` with exception `e`                         | More informative stack traces                              |
+| Refactoring          | Extracted `buildUpdateDocument()` method                       | Improves readability and unit testing                      |
+| Object creation      | Used inline initialization for `SearchRequest`, `IndexRequest` | Reduces boilerplate                                        |
