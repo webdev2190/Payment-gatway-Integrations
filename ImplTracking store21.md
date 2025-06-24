@@ -110,3 +110,62 @@ public sealed interface TrackingStore
 | `permits` clause   | Explicitly declares the permitted implementation class                        | Avoids accidental or rogue implementations                                      |
 | Enhanced Javadoc   | Descriptive parameter and exception documentation                             | Improves maintainability and auto-generated docs                                |
 
+================================================Java 21 Code=================================================>
+package com.optum.pure.trackingstore;
+
+import com.optum.pure.model.requestobjects.common.TrackingRecord;
+import com.optum.pure.model.entity.TrackingStatus;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Interface for TrackingStore
+ *
+ * Java 21 Modernization:
+ * - Use Optional for potentially missing data instead of returning null (for `getTrackingRecord`).
+ * - Improved JavaDoc.
+ * - Use `var` in examples, but not in interfaces (var not allowed in method signatures).
+ * - Suggest using records and sealed interfaces where appropriate.
+ */
+public interface TrackingStore {
+
+    /**
+     * Gets the Tracking Status from Tracking store based on trackingId.
+     * Never returns null.
+     *
+     * @param trackingId The trackingId for which the status is fetched.
+     * @return TrackingStatus for the provided trackingId.
+     * @throws IOException If querying Tracking Store fails.
+     */
+    TrackingStatus getTrackingStatus(String trackingId) throws IOException;
+
+    /**
+     * Returns the TrackingRecord for a given trackingId.
+     * Returns Optional.empty() if not found, avoiding nulls.
+     *
+     * @param trackingId The trackingId for which the record is fetched.
+     * @return Optional of TrackingRecord.
+     * @throws IOException If querying Tracking Store fails.
+     */
+    Optional<TrackingRecord> getTrackingRecord(String trackingId) throws IOException;
+
+    /**
+     * Inserts a TrackingRecord into the TrackingStore.
+     *
+     * @param trackingRecord The record to insert.
+     * @throws IOException If the insert fails.
+     */
+    void insertTrackingRecord(TrackingRecord trackingRecord) throws IOException;
+
+    /**
+     * Updates a list of fields in TrackingStore.
+     *
+     * @param trackingId The ID of the record to update.
+     * @param fields The list of field names to update.
+     * @param values The new values for the fields.
+     * @throws IOException If the update fails.
+     */
+    void updateRecord(String trackingId, List<String> fields, List<?> values) throws IOException;
+}
