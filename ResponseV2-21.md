@@ -43,3 +43,35 @@ public class ResponseV2 {
      *     .build();
      */
 }
+
+=================================================Java 21 Record============================================>
+
+package com.optum.pure.model.dto.v2;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * Java 21 modernized ResponseV2 using a record:
+ * - Immutability: all fields are final and set at construction.
+ * - No Lombok needed (records generate all core methods).
+ * - You can provide an overloaded static factory for single-argument construction, matching your previous constructor.
+ * - If no result list is given, an empty list is used.
+ */
+public record ResponseV2(
+        String trackingId,
+        List<DeIdentifiedTokensV2> result
+) {
+    // Compact constructor to ensure result is never null
+    public ResponseV2 {
+        result = (result == null) ? List.of() : List.copyOf(result);
+        Objects.requireNonNull(trackingId, "trackingId must not be null");
+    }
+
+    // Static factory to match your convenience constructor
+    public static ResponseV2 withTrackingId(String trackingId) {
+        return new ResponseV2(trackingId, List.of());
+    }
+}
+
