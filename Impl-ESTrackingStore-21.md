@@ -297,3 +297,151 @@ public final class ESTrackingStore implements TrackingStore {  // Modern: use `f
 | Logging              | Unified `LOG.error` with exception `e`                         | More informative stack traces                              |
 | Refactoring          | Extracted `buildUpdateDocument()` method                       | Improves readability and unit testing                      |
 | Object creation      | Used inline initialization for `SearchRequest`, `IndexRequest` | Reduces boilerplate                                        |
+==================================================================Java 21========================================>
+
+package com.optum.pure.trackingstore.impl;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.optum.pure.common.ConfigurationManager;
+import com.optum.pure.model.requestobjects.common.TrackingRecord;
+import com.optum.pure.model.entity.TrackingStatus;
+import com.optum.pure.trackingstore.TrackingStore;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.xcontent.XContentBuilder;
+import org.elasticsearch.xcontent.XContentType;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+
+import static org.elasticsearch.xcontent.XContentFactory.jsonBuilder;
+
+/**
+ * Java 21 Modernized implementation of {@link TrackingStore} using Elasticsearch.
+ */
+public class ESTrackingStore implements TrackingStore {
+
+    private static final Logger LOG = LogManager.getLogger(ESTrackingStore.class);
+
+    // Make the index and retry count configurable and final
+    private static final String ES_TRACKING_STORE_INDEX = Objects.requireNonNull(
+            ConfigurationManager.get("ES_TRACKING_STORE_INDEX"), "ES_TRACKING_STORE_INDEX must not be null");
+    private static final int RETRY_COUNT = 3;
+
+    // Prefer final and explicit constructor-based dependency injection
+    private final RestHighLevelClient client;
+    private final ObjectMapper objectMapper;
+
+    public ESTrackingStore(RestHighLevelClient client) {
+        this(client, new ObjectMapper());
+    }
+
+    // Allow for custom ObjectMapper if needed (for testing/mocking)
+    public ESTrackingStore(RestHighLevelClient client, ObjectMapper objectMapper) {
+        this.client = Objects.requireNonNull(client, "RestHighLevelClient must not be null");
+        this.objectMapper = Objects.requireNonNull(objectMapper, "ObjectMapper must not be null");
+    }
+
+    @Override
+    public TrackingStatus getTrackingStatus(String trackingId) throws IOException {
+        var trackingRecord = getTrackingRecord(trackingId);
+        return new TrackingStatus(trackingId, trackingRecord.status());
+    }
+
+    @Override
+    public TrackingRecord getTrackingRecord(String trackingId) throws IOException {
+        // Modernize variable declaration and error handling
+        var searchRequest = getSearchRequest(ES_TRACKING_STORE_INDEX, getSearchByTrackingIdQuery(trackingId));
+        SearchResponse response;
+        try {
+            response = client.search(searchRequest, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            LOG.error("Failed to fetch TrackingRecord for trackingId {} from TrackingStore", trackingId, e);
+            throw e;
+        }
+
+        var hits = response.getHits().getHits();
+        if (hits.length > 0) {
+            try {
+                // Use Jackson for deserialization (prefer over Gson if you already use Jackson)
+                return objectMapper.readValue(hits[0].getSourceAsString(), TrackingRecord.class);
+            } catch (IOException e) {
+                LOG.error("Failed to parse TrackingRecord for trackingId {}", trackingId, e);
+                throw e;
+            }
+        }
+        // Return null or throw an exception if no record found (up to you)
+        LOG.warn("No TrackingRecord found for trackingId {}", trackingId);
+        return null;
+    }
+
+    private BoolQueryBuilder getSearchByTrackingIdQuery(String trackingId) {
+        // Modern, fluent API
+        return QueryBuilders.boolQuery().filter(QueryBuilders.termQuery("trackingId", trackingId));
+    }
+
+    private SearchRequest getSearchRequest(String index, BoolQueryBuilder query) {
+        var sourceBuilder = new SearchSourceBuilder().query(query).fetchSource(null); // null: all fields
+        return new SearchRequest(index).source(sourceBuilder);
+    }
+
+    public void insertTrackingRecord(TrackingRecord trackingRecord) throws IOException {
+        Objects.requireNonNull(trackingRecord, "trackingRecord must not be null");
+        try {
+            // Use Jackson for serialization to JSON
+            var json = objectMapper.writeValueAsString(trackingRecord);
+            var indexRequest = new IndexRequest(ES_TRACKING_STORE_INDEX)
+                    .id(trackingRecord.trackingId())
+                    .source(json, XContentType.JSON);
+
+            client.index(indexRequest, RequestOptions.DEFAULT);
+            LOG.info("Inserted TrackingRecord for trackingId {}", trackingRecord.trackingId());
+        } catch (IOException e) {
+            LOG.error("Failed to insert TrackingRecord for trackingId {} in TrackingStore",
+                    trackingRecord.trackingId(), e);
+            throw e;
+        }
+    }
+
+    @Override
+    public void updateRecord(String trackingId, List<String> fields, List<?> values) throws IOException {
+        // Validate input lists
+        if (fields == null || values == null || fields.size() != values.size()) {
+            throw new IllegalArgumentException("Fields and values must be non-null and of equal size");
+        }
+
+        XContentBuilder doc;
+        try {
+            doc = jsonBuilder().startObject();
+            for (int i = 0; i < fields.size(); i++) {
+                doc.field(fields.get(i), values.get(i));
+            }
+            doc.endObject();
+        } catch (IOException e) {
+            LOG.error("Error while creating update Request for TrackingRecord with trackingId {}", trackingId, e);
+            throw e;
+        }
+
+        var updateRequest = new UpdateRequest(ES_TRACKING_STORE_INDEX, trackingId)
+                .doc(doc)
+                .retryOnConflict(RETRY_COUNT);
+
+        try {
+            client.update(updateRequest, RequestOptions.DEFAULT);
+            LOG.debug("Update Record successful for trackingId-{}", trackingId);
+        } catch (IOException e) {
+            LOG.error("Error while updating TrackingRecord for trackingId {}", trackingId, e);
+            throw e;
+        }
+    }
+}
