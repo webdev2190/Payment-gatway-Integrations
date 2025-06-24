@@ -41,3 +41,34 @@ public class LogStoreFactory {
     }
 }
 
+=========================================================Java 21 Record=========================================>
+
+package com.optum.pure.logstore.factory;
+
+import com.optum.pure.common.RestElasticsearchClient;
+import com.optum.pure.logstore.LogStore;
+import com.optum.pure.logstore.impl.ESLogStore;
+
+/**
+ * Java 21 modernized Factory class for LogStore.
+ * - Uses Initialization-on-demand holder idiom for thread-safe lazy singleton.
+ * - Private constructor prevents instantiation.
+ * - No need for synchronized blocks; thread safety is guaranteed by JVM.
+ */
+public final class LogStoreFactory {
+    // Private constructor to prevent instantiation
+    private LogStoreFactory() {}
+
+    /**
+     * Returns the singleton instance of LogStore.
+     * - Thread-safe and lazily initialized on first access.
+     */
+    public static LogStore getLogStore() {
+        return Holder.INSTANCE;
+    }
+
+    // Initialization-on-demand holder idiom (thread-safe, lazy, modern)
+    private static class Holder {
+        private static final LogStore INSTANCE = new ESLogStore(RestElasticsearchClient.getClient());
+    }
+}
