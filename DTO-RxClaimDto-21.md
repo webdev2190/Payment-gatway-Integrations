@@ -71,3 +71,61 @@ public class RxClaimDto {
         this.prescribingProviderId = Utils.stringFieldValidator(prescribingProviderId);
     }
 }
+
+==================================================Java 21 Record==============================================>
+
+package com.optum.pure.model.dto.common;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.optum.pure.common.Utils;
+
+/**
+ * Java 21 modernized RxClaimDto using a record:
+ * - Immutable by default; all fields are set once via the constructor.
+ * - No Lombok needed (records generate accessors, toString, equals, hashCode).
+ * - Jackson @JsonInclude works as before for non-null serialization.
+ * - Validation logic is done in the static factory method, ensuring only valid values are stored.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record RxClaimDto(
+        String pharmacyId,
+        String drugCode,
+        String daysSupply,
+        String prescriptionNumber,
+        String quantityFilled,
+        String fillDate,
+        String prescribingProviderId,
+        String claimId,
+        String sequenceNumber,
+        String claimStatus
+) {
+    /**
+     * Factory method for validation.
+     * Applies your original setter validation logic before constructing the record.
+     */
+    public static RxClaimDto of(
+            String pharmacyId,
+            String drugCode,
+            String daysSupply,
+            String prescriptionNumber,
+            String quantityFilled,
+            String fillDate,
+            String prescribingProviderId,
+            String claimId,
+            String sequenceNumber,
+            String claimStatus
+    ) {
+        return new RxClaimDto(
+                Utils.stringFieldValidator(pharmacyId),
+                Utils.stringFieldValidator(drugCode),
+                Utils.stringFieldValidator(daysSupply),
+                Utils.stringFieldValidator(prescriptionNumber),
+                Utils.stringFieldValidator(quantityFilled),
+                Utils.stringFieldValidator(fillDate),
+                Utils.stringFieldValidator(prescribingProviderId),
+                Utils.stringFieldValidator(claimId),
+                Utils.stringFieldValidator(sequenceNumber),
+                Utils.stringFieldValidator(claimStatus)
+        );
+    }
+}
