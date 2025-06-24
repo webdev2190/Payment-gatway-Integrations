@@ -51,3 +51,32 @@ public class MedEligibility {
         this.startDate = startDate;
     }
 }
+====================================================Java 21 Record==============================================>
+
+package com.optum.pure.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+/**
+ * Java 21 modernized MedEligibility using a record:
+ * - Immutability by default, fields cannot be changed after creation.
+ * - No Lombok needed (records generate all boilerplate code).
+ * - Jackson 2.12+ supports records and @JsonInclude for non-null serialization.
+ * - Cleaner, safer, and more maintainable.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record MedEligibility(
+        String stateCode,
+        String recordId,
+        String dateOfBirth,
+        String zipCode,
+        String memberIdentifier,
+        String gender,
+        String updateDate,
+        String endDate,
+        String healthPlanIdentifier,
+        String startDate
+) {
+    // No custom logic is needed for pure data carriers.
+    // You can add helper methods or validation here if needed.
+}
