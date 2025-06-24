@@ -57,3 +57,30 @@ public class LogRecord {
      *     .build();
      */
 }
+=========================================Java 21 Record======================================================>
+
+package com.optum.pure.model.requestobjects.common;
+
+/**
+ * Java 21 modernized, immutable LogRecord using a record:
+ * - No need for Lombok annotations
+ * - All fields are final and set in the constructor (immutability)
+ * - Getters, toString, equals, and hashCode are auto-generated
+ */
+public record LogRecord(
+        String trackingId,
+        String correlationId,
+        String callerId,
+        String serviceName,
+        String status,
+        String timeStamp,
+        long timeTakenMs
+) {
+    // No-args or all-args constructor isn't needed: records generate an all-args constructor by default.
+    // If you need to enforce validation, you can use a compact constructor:
+    // public LogRecord {
+    //     if (trackingId == null || trackingId.isBlank()) {
+    //         throw new IllegalArgumentException("trackingId must not be blank");
+    //     }
+    // }
+}
