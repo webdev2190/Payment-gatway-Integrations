@@ -107,3 +107,26 @@ public final class TokenTuple {
 | ✅ `equals()` using `instanceof pattern matching` | Cleaner type checking (Java 16+ feature)          |
 | ✅ Explicit `toString`, `equals`, `hashCode`      | Matches behavior Lombok would provide             |
 
+====================================java 21=================================================
+package com.optum.pure.model.requestobjects.v2;
+
+// Java 21: Use `record` to auto-generate constructor, equals, hashCode, toString, etc.
+// Also, record fields are implicitly final and non-null (enforced manually below)
+public record TokenTuple(String tokenType1, String tokenType2) {
+
+    // Compact constructor for null-checks (since records allow null unless enforced)
+    public TokenTuple {
+        // Explicit null checks for both fields to mimic Lombok's @NonNull
+        if (tokenType1 == null || tokenType2 == null) {
+            throw new NullPointerException("tokenType1 and tokenType2 cannot be null");
+        }
+    }
+
+    // You get equals, hashCode, and toString for free with records!
+
+    // Add custom methods here if needed, for example:
+    public String combinedTokenType() {
+        return tokenType1 + ":" + tokenType2;
+    }
+}
+
