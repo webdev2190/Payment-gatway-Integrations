@@ -133,3 +133,66 @@ public class MedClaim {
         this.providerAddress1 = providerAddress1;
     }
 }
+================================================Java 21 Record================================================>
+
+package com.optum.pure.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.List;
+
+/**
+ * Java 21 modernized MedClaim using a record:
+ * - Immutability: all fields are final and set only via constructor.
+ * - No Lombok needed: records auto-generate all getters, toString, equals, and hashCode.
+ * - Jackson 2.12+ supports records and @JsonInclude.
+ * - Works perfectly for REST APIs and persistence DTOs.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record MedClaim(
+        String recordId,
+        String city,
+        String memberIdentifier,
+        String stateCode,
+        String zip,
+        String dateOfBirth,
+        String gender,
+        String claimStatus,
+        String adjudicationFlag,
+        String claimId,
+        String providerZip,
+        String providerCity,
+        String providerSpecialtyDescription,
+        String updateDate,
+        String typeOfAdmissionDescription,
+        String sourceOfAdmissionDescription,
+        String serviceDate,
+        String drgCode,
+        String drgCodeDescription,
+        String healthPlanIdentifier,
+        String dischargeStatusCode,
+        String procedureCodeType,
+        List<IcdDiagnosisCodesItem> icdDiagnosisCodes,
+        String typeOfAdmission,
+        String ndcCodeDescription,
+        String claimType,
+        String sourceOfAdmission,
+        String typeOfBill,
+        String providerName,
+        String ndcCode,
+        String drgGrouper,
+        List<ServiceProcedureItem> serviceProcedures,
+        String providerLastName,
+        String providerStateCode,
+        String providerNpi,
+        List<ProcedureCodesItem> procedureCodes,
+        String dischargeStatusCodeDescription,
+        String admittingDiagnosisCode,
+        String providerSpecialtyCode,
+        String servicePostDate,
+        String providerFirstName,
+        String icdCodeType,
+        String providerAddress2,
+        String providerAddress1
+) {
+    // No custom logic needed for pure DTO. If needed, add helper methods or validation here.
+}
