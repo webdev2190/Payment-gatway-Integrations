@@ -37,3 +37,25 @@ public class ProcessingMetrics {
      *     .build();
      */
 }
+
+=============================================Java 21 Record code=================================================>
+
+package com.optum.pure.model.requestobjects.common;
+
+/**
+ * Modern, immutable Java 21 version of ProcessingMetrics using a record.
+ * - No Lombok needed (records provide everything automatically)
+ * - Immutable by default (value cannot change after construction)
+ * - Getters are auto-generated: numberOfTokens()
+ */
+public record ProcessingMetrics(int numberOfTokens) {
+    // No setters or explicit constructor needed (record handles it)
+    // If you want to add validation, use a compact constructor like this:
+
+    // public ProcessingMetrics {
+    //     if (numberOfTokens < 0) {
+    //         throw new IllegalArgumentException("numberOfTokens cannot be negative");
+    //     }
+    // }
+}
+
