@@ -36,3 +36,31 @@ public class Rx {
         // but 'var' demonstrates Java 21 type inference.
     }
 }
+
+===================================================Java 21 Record============================================>
+
+package com.optum.pure.model.dto.common;
+
+import java.util.List;
+
+/**
+ * Java 21 modernized Rx using a record:
+ * - Immutability: lists can't be reassigned after creation.
+ * - No Lombok needed (records auto-generate accessors, toString, equals, hashCode).
+ * - Lists are always non-null and unmodifiable, matching your original constructor's intent.
+ */
+public record Rx(
+        List<RxEligibilityDto> eligibilities,
+        List<RxClaimDto> claims
+) {
+    // Compact constructor ensures lists are never null and are unmodifiable.
+    public Rx {
+        eligibilities = (eligibilities == null) ? List.of() : List.copyOf(eligibilities);
+        claims = (claims == null) ? List.of() : List.copyOf(claims);
+    }
+
+    // Optionally, a factory method to mimic the old no-args constructor
+    public static Rx empty() {
+        return new Rx(List.of(), List.of());
+    }
+}
