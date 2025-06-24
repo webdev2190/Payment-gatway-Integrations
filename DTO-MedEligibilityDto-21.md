@@ -55,3 +55,43 @@ public class MedEligibilityDto {
         this.startDate = Utils.stringFieldValidator(startDate);
     }
 }
+
+==============================================Java 21 Record======================================================
+
+package com.optum.pure.model.dto.common;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.optum.pure.common.Utils;
+
+/**
+ * Java 21 modernized MedEligibilityDto using a record:
+ * - Immutability: fields cannot be changed after creation.
+ * - No Lombok needed (record provides accessors, toString, equals, hashCode).
+ * - Validation logic is done at creation via the factory method.
+ * - Jackson @JsonInclude works as before.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record MedEligibilityDto(
+        String updateDate,
+        String endDate,
+        String healthPlanIdentifier,
+        String startDate
+) {
+    /**
+     * Factory method to apply validation (as in your original setters).
+     */
+    public static MedEligibilityDto of(
+            String updateDate,
+            String endDate,
+            String healthPlanIdentifier,
+            String startDate
+    ) {
+        return new MedEligibilityDto(
+            Utils.stringFieldValidator(updateDate),
+            Utils.stringFieldValidator(endDate),
+            Utils.stringFieldValidator(healthPlanIdentifier),
+            Utils.stringFieldValidator(startDate)
+        );
+    }
+}
+
