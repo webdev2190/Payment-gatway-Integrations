@@ -129,3 +129,61 @@ public class RxClaim {
      *     .build();
      */
 }
+
+=============================================Java 21 Record=================================================>
+
+package com.optum.pure.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+/**
+ * Modern Java 21 RxClaim using a record:
+ * - All fields are immutable.
+ * - Lombok is not needed (records generate all boilerplate).
+ * - Jackson 2.12+ fully supports records and field annotations like @JsonAlias.
+ * - @JsonInclude ensures only non-null fields are serialized.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record RxClaim(
+        String cagm,
+        String memberIdentifier,
+        String status,
+        String recordId,
+        String claimStatus,
+        String claimId,
+        String sequenceNumber,
+        String firstName,
+        String middleName,
+        String lastName,
+        String dateOfBirth,
+        String gender,
+        String address1,
+        String address2,
+        String city,
+        String stateCode,
+        String zipCode,
+        String snapshotTime,
+        String galaxyIdentifier,
+        String addressType,
+        String pharmacyId,
+        String drugCode,
+        String healthPlanIdentifier,
+        String daysSupply,
+        String prescriptionNumber,
+        @JsonAlias("prescriberSpecialityDescription") String prescriberSpecialtyDescription,
+        String quantityFilled,
+        String fillDate,
+        String drugCodeType,
+        String drugStrength,
+        String drugCarrier,
+        @JsonAlias("prescriberSpecialityCode") String prescriberSpecialtyCode,
+        String refillNumber,
+        String drugName,
+        String prescribingProviderId,
+        String totalRefills,
+        String providerName
+) {
+    // No setters, no custom logic: just a pure, immutable data carrier.
+    // Add validation or computed methods here if needed.
+}
