@@ -46,3 +46,32 @@ public class ProcedureCodesItem {
      *     .build();
      */
 }
+
+==================================================Java 21 Record==================================================>
+
+package com.optum.pure.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.optum.pure.common.Utils;
+
+/**
+ * Modern Java 21 immutable DTO using record:
+ * - No Lombok needed (record gives all boilerplate).
+ * - Jackson 2.12+ supports records and @JsonInclude.
+ * - Validation is moved to separate methods (cannot override record accessors).
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record ProcedureCodesItem(
+        String procedureCode,
+        String procedureCodeDescription
+) {
+    // Use these helper methods for validated access:
+    public String validatedProcedureCode() {
+        return Utils.stringFieldValidator(procedureCode);
+    }
+
+    public String validatedProcedureCodeDescription() {
+        return Utils.stringFieldValidator(procedureCodeDescription);
+    }
+}
+
