@@ -48,3 +48,31 @@ public class TokenStoreObject {
      * System.out.println(tokenStore);
      */
 }
+========================================Future Proof Java 21 Code=====================================================>
+
+package com.optum.pure.model.tokenobjects;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.util.List;
+
+/**
+ * Java 21-compatible POJO for token store response.
+ * Using `final class` to ensure immutability intent and project-wide consistency.
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
+public final class TokenStoreObject {
+
+    private String status;
+    private List<AlternateIdentifierObject> alternateIdentifiers;
+    private Tokens tokenList;
+    private String recordId;
+    private String loadTimeStamp;
+}
+
