@@ -35,3 +35,29 @@ public class DeIdentifiedTokensV1 {
         // But 'var' shows the modern Java 21 approach.
     }
 }
+
+=============================================Java 21 Record=======================================>
+
+package com.optum.pure.model.dto.v1;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.optum.pure.model.dto.common.Data;
+
+/**
+ * Java 21 modernized DeIdentifiedTokensV1 using a record:
+ * - Immutability by default (fields can't be changed after construction).
+ * - No Lombok needed (records generate accessors, toString, equals, hashCode).
+ * - @JsonIgnore works as expected for fields you want to hide from JSON serialization.
+ * - Compact constructor ensures 'data' is never null (like your previous default constructor).
+ */
+public record DeIdentifiedTokensV1(
+        String token,
+        @JsonIgnore String tokenType,
+        Data data
+) {
+    // Compact constructor to ensure 'data' is never null
+    public DeIdentifiedTokensV1 {
+        data = (data == null) ? new Data() : data;
+    }
+}
+
