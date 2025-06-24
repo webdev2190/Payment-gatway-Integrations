@@ -127,3 +127,117 @@ public class MedClaimDto {
         this.providerSpecialtyCode = Utils.stringFieldValidator(providerSpecialtyCode);
     }
 }
+=============================================Java 21 Record================================================>
+
+package com.optum.pure.model.dto.common;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.optum.pure.common.Utils;
+import com.optum.pure.model.entity.IcdDiagnosisCodesItem;
+import com.optum.pure.model.entity.ServiceProcedureItem;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * Java 21 modernized MedClaimDto using a record:
+ * - Immutable by default (fields can't be changed after creation).
+ * - No Lombok needed (record provides accessors, toString, equals, hashCode).
+ * - Validation, filtering, and field normalization is done up-front in the static factory method.
+ * - @JsonInclude works as before for Jackson.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record MedClaimDto(
+        String providerSpecialtyDescription,
+        String providerNpi,
+        String providerSpecialtyCode,
+        String adjudicationFlag,
+        String updateDate,
+        String serviceDate,
+        List<IcdDiagnosisCodesItem> icdDiagnosisCodes,
+        String ndcCodeDescription,
+        String claimType,
+        String ndcCode,
+        List<ServiceProcedureItem> serviceProcedures,
+        String claimId,
+        String icdCodeType,
+        String claimStatus
+) {
+    @JsonIgnore
+    private static final List<String> exclusionList = Arrays.asList("null", "NONE", "NO NDC");
+
+    /**
+     * Factory method for validation and normalization.
+     */
+    public static MedClaimDto of(
+            String providerSpecialtyDescription,
+            String providerNpi,
+            String providerSpecialtyCode,
+            String adjudicationFlag,
+            String updateDate,
+            String serviceDate,
+            List<IcdDiagnosisCodesItem> icdDiagnosisCodes,
+            String ndcCodeDescription,
+            String claimType,
+            String ndcCode,
+            List<ServiceProcedureItem> serviceProcedures,
+            String claimId,
+            String icdCodeType,
+            String claimStatus
+    ) {
+        // Apply validation for all string/list fields as in original setters
+        providerSpecialtyDescription = Utils.stringFieldValidator(providerSpecialtyDescription);
+        providerNpi = Utils.stringFieldValidator(providerNpi);
+        providerSpecialtyCode = Utils.stringFieldValidator(providerSpecialtyCode);
+        adjudicationFlag = Utils.stringFieldValidator(adjudicationFlag);
+        updateDate = Utils.stringFieldValidator(updateDate);
+        serviceDate = Utils.stringFieldValidator(serviceDate);
+        icdDiagnosisCodes = Utils.listFieldValidator(icdDiagnosisCodes);
+        ndcCode = Utils.stringFieldValidator(ndcCode);
+        claimType = Utils.stringFieldValidator(claimType);
+        serviceProcedures = Utils.listFieldValidator(serviceProcedures);
+        claimId = Utils.stringFieldValidator(claimId);
+        icdCodeType = Utils.stringFieldValidator(icdCodeType);
+        claimStatus = Utils.stringFieldValidator(claimStatus);
+
+        // Exclusion logic for NDC code description
+        if (ndcCodeDescription == null ||
+                exclusionList.stream().anyMatch(e -> e.equalsIgnoreCase(ndcCodeDescription)) ||
+                ndcCodeDescription.isEmpty()) {
+            ndcCodeDescription = null;
+        }
+
+        return new MedClaimDto(
+                providerSpecialtyDescription,
+                providerNpi,
+                providerSpecialtyCode,
+                adjudicationFlag,
+                updateDate,
+                serviceDate,
+                icdDiagnosisCodes,
+                ndcCodeDescription,
+                claimType,
+                ndcCode,
+                serviceProcedures,
+                claimId,
+                icdCodeType,
+                claimStatus
+        );
+    }
+
+    /**
+     * Returns validated ICD diagnosis codes as a List of Strings.
+     */
+    public List<String> icdDiagnosisCodesAsStrings() {
+        if (icdDiagnosisCodes == null)
+            return null;
+        List<String> items = new ArrayList<>();
+        for (IcdDiagnosisCodesItem item : icdDiagnosisCodes) {
+            items.add(item.icdDiagnosisCode());
+        }
+        return Utils.listFieldValidator(items);
+    }
+}
