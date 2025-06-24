@@ -89,6 +89,45 @@ public class RxEligibilityDto {
         this(null, null, null, null);
     }
 }
+===========================================Java 21 Record=====================================================>
+
+package com.optum.pure.model.dto.common;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.optum.pure.common.Utils;
+
+/**
+ * Java 21 modernized RxEligibilityDto using a record:
+ * - Immutability by default (fields can't be changed after construction).
+ * - No Lombok needed (records generate accessors, toString, equals, hashCode).
+ * - Jackson @JsonInclude works as before.
+ * - Validation logic now happens at object creation via a static factory method.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record RxEligibilityDto(
+        String healthPlanAccountIdentifier,
+        String endDate,
+        String healthPlanIdentifier,
+        String startDate
+) {
+    /**
+     * Factory method for input validation.
+     * Ensures all fields are validated before record creation.
+     */
+    public static RxEligibilityDto of(
+            String healthPlanAccountIdentifier,
+            String endDate,
+            String healthPlanIdentifier,
+            String startDate
+    ) {
+        return new RxEligibilityDto(
+            Utils.stringFieldValidator(healthPlanAccountIdentifier),
+            Utils.stringFieldValidator(endDate),
+            Utils.stringFieldValidator(healthPlanIdentifier),
+            Utils.stringFieldValidator(startDate)
+        );
+    }
+}
 
     /**
      * Sets the start date after validation.
