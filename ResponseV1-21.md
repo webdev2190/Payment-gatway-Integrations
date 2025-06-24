@@ -85,4 +85,33 @@ public class ResponseV1 {
      *                                  .build();
      */
 }
+=========================================Java 21 Record===================================>
 
+package com.optum.pure.model.dto.v1;
+
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * Java 21 modernized ResponseV1 using a record:
+ * - Immutable by default; all fields are set via constructor, no setters.
+ * - No Lombok needed (record provides all core methods).
+ * - Ensures 'result' is never null (just like your original constructor).
+ */
+public record ResponseV1(
+        String trackingId,
+        String tokenType,
+        List<DeIdentifiedTokensV1> result
+) {
+    // Compact constructor to guarantee 'result' is always a non-null (possibly empty) list
+    public ResponseV1 {
+        result = (result == null) ? List.of() : List.copyOf(result);
+        Objects.requireNonNull(trackingId, "trackingId must not be null");
+        Objects.requireNonNull(tokenType, "tokenType must not be null");
+    }
+
+    // Factory method for your original (trackingId, tokenType) constructor
+    public static ResponseV1 with(String trackingId, String tokenType) {
+        return new ResponseV1(trackingId, tokenType, List.of());
+    }
+}
