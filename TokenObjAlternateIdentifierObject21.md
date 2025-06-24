@@ -38,3 +38,73 @@ public class AlternateIdentifierObject {
         this.alternateIdentifierSource = null;
     }
 }
+============================================Future Proof Java 21 code===================================================>
+
+package com.optum.pure.model.tokenobjects;
+
+import java.util.Objects;
+
+/**
+ * Java 21 upgraded version of AlternateIdentifierObject.
+ * This class holds alternate identifier info for tokens.
+ */
+public final class AlternateIdentifierObject {
+
+    private String alternateIdentifier;
+    private String alternateIdentifierType;
+    private String alternateIdentifierSource;
+
+    // No-arg constructor
+    public AlternateIdentifierObject() {
+    }
+
+    // All-args constructor (optional but useful)
+    public AlternateIdentifierObject(String alternateIdentifier, String alternateIdentifierType, String alternateIdentifierSource) {
+        this.alternateIdentifier = alternateIdentifier;
+        this.alternateIdentifierType = alternateIdentifierType;
+        this.alternateIdentifierSource = alternateIdentifierSource;
+    }
+
+    // Getters
+    public String getAlternateIdentifier() {
+        return alternateIdentifier;
+    }
+
+    public String getAlternateIdentifierType() {
+        return alternateIdentifierType;
+    }
+
+    public String getAlternateIdentifierSource() {
+        return alternateIdentifierSource;
+    }
+
+    // Setters with null safety (optional)
+    public void setAlternateIdentifier(String alternateIdentifier) {
+        this.alternateIdentifier = Objects.requireNonNullElse(alternateIdentifier, "");
+    }
+
+    public void setAlternateIdentifierType(String alternateIdentifierType) {
+        this.alternateIdentifierType = Objects.requireNonNullElse(alternateIdentifierType, "");
+    }
+
+    public void setAlternateIdentifierSource(String alternateIdentifierSource) {
+        this.alternateIdentifierSource = Objects.requireNonNullElse(alternateIdentifierSource, "");
+    }
+
+    @Override
+    public String toString() {
+        return "AlternateIdentifierObject{" +
+                "alternateIdentifier='" + alternateIdentifier + '\'' +
+                ", alternateIdentifierType='" + alternateIdentifierType + '\'' +
+                ", alternateIdentifierSource='" + alternateIdentifierSource + '\'' +
+                '}';
+    }
+}
+
+| Feature/Change                                       | Explanation                                                                  |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `final class`                                        | Prevents subclassing — ensures immutability style without `record`           |
+| Null-safe setters using `Objects.requireNonNullElse` | Avoids `null` values internally, aligns with modern best practices           |
+| Manual `toString()`                                  | Provides clarity without relying on Lombok (optional)                        |
+| Optional all-args constructor                        | Useful for flexible object creation                                          |
+| Removed Lombok                                       | Explicit code is more portable, readable, and tool-friendly in the long term |
