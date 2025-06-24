@@ -86,3 +86,38 @@ public class RxEligibility {
      *     .build();
      */
 }
+===========================================Java 21 Record==============================================>
+
+package com.optum.pure.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+/**
+ * Java 21 modernized RxEligibility using a record:
+ * - No Lombok needed.
+ * - Immutable, concise, and serialization-friendly.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record RxEligibility(
+        String recordId,
+        String cagm,
+        String status,
+        String memberIdentifier,
+        String firstName,
+        String middleName,
+        String lastName,
+        String gender,
+        String dateOfBirth,
+        String address1,
+        String address2,
+        String city,
+        String stateCode,
+        String zipCode,
+        String snapshotTime,
+        String healthPlanAccountIdentifier,
+        String endDate,
+        String healthPlanIdentifier,
+        String startDate
+) {
+    // No setters, no custom logic: just a pure data carrier.
+}
