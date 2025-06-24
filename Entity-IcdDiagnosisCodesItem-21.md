@@ -37,3 +37,37 @@ public class IcdDiagnosisCodesItem {
      * If needed, additional methods can be added to transform or validate other aspects.
      */
 }
+
+=======================================================Java 21 Record=============================================>
+
+package com.optum.pure.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.optum.pure.common.Utils;
+
+/**
+ * Java 21 modernized IcdDiagnosisCodesItem using a record:
+ * - Immutability: fields are final and set only at construction.
+ * - No Lombok needed: records generate all getters, toString, equals, hashCode.
+ * - Jackson 2.12+ supports records and @JsonInclude.
+ * - Validation is provided by separate helper methods.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record IcdDiagnosisCodesItem(
+        String icdDiagnosisCode,
+        String icdDiagnosisDecimalCode,
+        String icdDiagnosisCodeDescription
+) {
+    // Validation logic as helper methods (cannot override accessors in records)
+    public String validatedIcdDiagnosisCode() {
+        return Utils.stringFieldValidator(icdDiagnosisCode);
+    }
+
+    public String validatedIcdDiagnosisDecimalCode() {
+        return Utils.stringFieldValidator(icdDiagnosisDecimalCode);
+    }
+
+    public String validatedIcdDiagnosisCodeDescription() {
+        return Utils.stringFieldValidator(icdDiagnosisCodeDescription);
+    }
+}
