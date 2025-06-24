@@ -31,3 +31,26 @@ public class RecordCount {
 
     // Optional: Builder pattern can be added here for flexible construction (if needed)
 }
+
+=========================================Java 21================================================================
+
+package com.optum.pure.model.requestobjects.common;
+
+/**
+ * Modern, immutable Java 21 version of RecordCount using record.
+ * - No need for Lombok or boilerplate
+ * - Immutable by default (fields cannot change)
+ * - Getters are automatically created: eligibilityCount(), claimsCount()
+ */
+public record RecordCount(int eligibilityCount, int claimsCount) {
+    // No need for constructors, setters, or getters—record does it all.
+    // If you want validation, add a compact constructor here.
+
+    // Example: Add validation if needed (uncomment if required)
+    // public RecordCount {
+    //     if (eligibilityCount < 0 || claimsCount < 0) {
+    //         throw new IllegalArgumentException("Counts cannot be negative");
+    //     }
+    // }
+}
+
