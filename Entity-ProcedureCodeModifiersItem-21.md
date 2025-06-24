@@ -42,3 +42,32 @@ public class ProcedureCodeModifiersItem {
      *     .build();
      */
 }
+
+===================================================Java 21 Record===================================================>
+
+package com.optum.pure.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.optum.pure.common.Utils;
+
+/**
+ * Java 21 modernized ProcedureCodeModifiersItem using a record:
+ * - Immutability by default, fields are final.
+ * - No Lombok needed; record provides all standard methods (getters, toString, equals, hashCode).
+ * - Jackson 2.12+ supports records and @JsonInclude.
+ * - Validation logic provided through helper methods (since accessor methods cannot be overridden in records).
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record ProcedureCodeModifiersItem(
+        String procedureCodeModifier,
+        String procedureCodeModifierDescription
+) {
+    // Use these methods for validated access:
+    public String validatedProcedureCodeModifier() {
+        return Utils.stringFieldValidator(procedureCodeModifier);
+    }
+
+    public String validatedProcedureCodeModifierDescription() {
+        return Utils.stringFieldValidator(procedureCodeModifierDescription);
+    }
+}
