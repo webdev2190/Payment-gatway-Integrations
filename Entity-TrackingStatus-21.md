@@ -47,3 +47,34 @@ public class TrackingStatus {
      *     .build();
      */
 }
+
+========================================Java 21 Record==================================================
+
+package com.optum.pure.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+/**
+ * Modern, idiomatic Java 21 version of TrackingStatus:
+ * - Uses a record for immutability, safety, and brevity
+ * - Keeps Jackson annotations for null-handling during JSON serialization
+ * - Provides static factory methods for various construction patterns
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL) // At class level: applies to all fields
+public record TrackingStatus(
+        String trackingId,
+        String status,
+        String errorDescription
+) {
+    // If you want multiple ways to create, use static factory methods:
+    public static TrackingStatus of(String trackingId) {
+        return new TrackingStatus(trackingId, null, null);
+    }
+
+    public static TrackingStatus of(String trackingId, String status) {
+        return new TrackingStatus(trackingId, status, null);
+    }
+
+    // Jackson (as of 2.12+) works well with records; just be sure your library is updated
+}
+
