@@ -36,3 +36,33 @@ public class Medical {
         // But using 'var' shows type inference benefit in Java 21
     }
 }
+
+============================================Java 21 Record==========================================>
+
+package com.optum.pure.model.dto.common;
+
+import java.util.List;
+
+/**
+ * Java 21 modernized Medical using a record:
+ * - Immutability: fields are final and cannot change after construction.
+ * - No Lombok needed (record provides accessors, toString, equals, hashCode).
+ * - Lists are always non-null and unmodifiable, matching your original constructor's behavior.
+ */
+public record Medical(
+        List<MedEligibilityDto> eligibilities,
+        List<MedClaimDto> claims
+) {
+    // Compact constructor: guarantees lists are non-null and unmodifiable
+    public Medical {
+        eligibilities = (eligibilities == null) ? List.of() : List.copyOf(eligibilities);
+        claims = (claims == null) ? List.of() : List.copyOf(claims);
+    }
+
+    // Static factory for classic "empty" construction
+    public static Medical empty() {
+        return new Medical(List.of(), List.of());
+    }
+}
+
+
