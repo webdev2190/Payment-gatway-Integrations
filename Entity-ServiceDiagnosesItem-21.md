@@ -48,3 +48,32 @@ public class ServiceDiagnosesItem {
      *     .build();
      */
 }
+
+====================================Java 21 Record=========================================>
+
+package com.optum.pure.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.optum.pure.common.Utils;
+
+/**
+ * Modern Java 21 immutable DTO using record:
+ * - No setters needed (fields are final, set via constructor)
+ * - Jackson 2.12+ supports records out-of-the-box
+ * - Validation logic provided as helper methods
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record ServiceDiagnosesItem(
+        String diagnosisCode,
+        String diagnosisCodeDescription
+) {
+    // Return validated diagnosis code (use this in your services or for JSON if needed)
+    public String validatedDiagnosisCode() {
+        return Utils.stringFieldValidator(diagnosisCode);
+    }
+
+    public String validatedDiagnosisCodeDescription() {
+        return Utils.stringFieldValidator(diagnosisCodeDescription);
+    }
+}
+
