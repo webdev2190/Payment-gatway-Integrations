@@ -62,3 +62,26 @@ public class Notification {
      *     .build();
      */
 }
+=========================================Java 21 Record=======================================================>
+
+package com.optum.pure.model.notification;
+
+/**
+ * Modern Java 21 Notification class as a record.
+ * - No need for Lombok: all boilerplate is handled by the record.
+ * - Immutability by default: safer and easier to reason about.
+ * - Getters, toString, equals, and hashCode are auto-generated.
+ */
+public record Notification(
+        String trackingId,
+        String version,
+        String inputArtifactUri
+) {
+    // No extra constructors or setters needed.
+    // If you want to add validation, you can use a compact constructor:
+    // public Notification {
+    //     if (trackingId == null || trackingId.isBlank()) {
+    //         throw new IllegalArgumentException("trackingId cannot be blank");
+    //     }
+    // }
+}
