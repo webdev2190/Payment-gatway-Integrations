@@ -32,6 +32,11 @@ public enum StatusEnum {
 }
 ======================================================Java 21 New Code with Display Name==================================================>
 
+package com.optum.pure.common;
+
+/**
+ * Enum representing the response status for a process.
+ */
 public enum Status {
     NOT_YET_STARTED("Not Yet Started"),
     INVALID("Invalid"),
