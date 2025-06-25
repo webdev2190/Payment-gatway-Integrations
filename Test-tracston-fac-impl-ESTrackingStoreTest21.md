@@ -148,3 +148,119 @@ class ESTrackingStoreTest {
         assertEquals("index failed", exception.getMessage());
     }
 }
+
+==============================================Java 21 New Code=================================================
+
+package com.optum.pure.trackingstore.impl;
+
+import com.optum.pure.model.requestobjects.common.TrackingRecord;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
+import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class ESTrackingStoreTest {
+
+    @Mock
+    private RestHighLevelClient mockClient;
+
+    @InjectMocks
+    private ESTrackingStore trackingStore;
+
+    @Captor
+    private ArgumentCaptor<SearchRequest> searchRequestCaptor;
+
+    private TrackingRecord trackingRecord;
+    private String responseString;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+        trackingRecord = new TrackingRecord();
+        trackingRecord.setStatus("IN-PROGRESS");
+        trackingRecord.setTrackingId("test");
+        trackingRecord.setCallerId("test");
+        responseString = "{ \"trackingId\": \"test\", \"status\": \"IN-PROGRESS\", \"callerId\": \"test\" }";
+    }
+
+    @Test
+    void getTrackingStatus_returnsExpectedStatus() throws IOException {
+        ESTrackingStore spyStore = Mockito.spy(trackingStore);
+        doReturn(trackingRecord).when(spyStore).getTrackingRecord("test");
+        var status = spyStore.getTrackingStatus("test");
+        assertThat(status.getStatus()).isEqualTo("IN-PROGRESS");
+        assertThat(status.getTrackingId()).isEqualTo("test");
+    }
+
+    @Test
+    void getTrackingRecord_returnsTrackingRecordOnSuccess() throws IOException {
+        SearchResponse mockSearchResponse = mock(SearchResponse.class);
+        SearchHits mockHits = mock(SearchHits.class);
+        SearchHit mockHit = mock(SearchHit.class);
+
+        when(mockClient.search(any(SearchRequest.class), any(RequestOptions.class))).thenReturn(mockSearchResponse);
+        when(mockSearchResponse.getHits()).thenReturn(mockHits);
+        when(mockHits.getHits()).thenReturn(new SearchHit[] {mockHit});
+        when(mockHits.getAt(anyInt())).thenReturn(mockHit);
+        when(mockHit.getSourceAsString()).thenReturn(responseString);
+
+        TrackingRecord result = trackingStore.getTrackingRecord("test");
+        assertThat(result.getTrackingId()).isEqualTo(trackingRecord.getTrackingId());
+        assertThat(result.getStatus()).isEqualTo(trackingRecord.getStatus());
+        assertThat(result.getCallerId()).isEqualTo(trackingRecord.getCallerId());
+    }
+
+    @Test
+    void getTrackingRecord_throwsIOExceptionWhenSearchFails() throws IOException {
+        when(mockClient.search(any(SearchRequest.class), any(RequestOptions.class)))
+                .thenThrow(new IOException("test"));
+        assertThatThrownBy(() -> trackingStore.getTrackingRecord("test"))
+                .isInstanceOf(IOException.class)
+                .hasMessageContaining("test");
+    }
+
+    @Test
+    void getTrackingRecord_throwsIOExceptionOnParseFail() throws IOException {
+        SearchResponse mockSearchResponse = mock(SearchResponse.class);
+        SearchHits mockHits = mock(SearchHits.class);
+        SearchHit mockHit = mock(SearchHit.class);
+
+        when(mockClient.search(any(SearchRequest.class), any(RequestOptions.class))).thenReturn(mockSearchResponse);
+        when(mockSearchResponse.getHits()).thenReturn(mockHits);
+        when(mockHits.getHits()).thenReturn(new SearchHit[] {mockHit});
+        when(mockHits.getAt(anyInt())).thenReturn(mockHit);
+        // Provide an invalid JSON string to simulate parsing failure
+        when(mockHit.getSourceAsString()).thenReturn("{ \"Invalid-Field\": \"test\" }");
+
+        assertThatThrownBy(() -> trackingStore.getTrackingRecord("test"))
+                .isInstanceOf(IOException.class);
+    }
+
+    @Test
+    void insertTrackingRecord_successfulInsertDoesNotThrow() throws IOException {
+        IndexResponse mockResponse = mock(IndexResponse.class);
+        when(mockClient.index(any(IndexRequest.class), any(RequestOptions.class))).thenReturn(mockResponse);
+        assertThatCode(() -> trackingStore.insertTrackingRecord(trackingRecord)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void insertTrackingRecord_throwsIOExceptionOnFailure() throws IOException {
+        when(mockClient.index(any(IndexRequest.class), any(RequestOptions.class))).thenThrow(new IOException("test"));
+        assertThatThrownBy(() -> trackingStore.insertTrackingRecord(trackingRecord))
+                .isInstanceOf(IOException.class)
+                .hasMessageContaining("test");
+    }
+}
+
