@@ -35,3 +35,39 @@ public final class FileStoreFactory { // ✅ Marked final to prevent subclassing
         return fileStore;
     }
 }
+
+======================================================================Java 21 New Code========================================================>
+
+package com.optum.pure.filestore.factory;
+
+import com.optum.pure.filestore.FileStore;
+import com.optum.pure.filestore.impl.OOSSFileStore;
+
+/**
+ * Java 21 modernized Factory class for FileStore.
+ * - Uses the Initialization-on-demand holder idiom for a thread-safe, lazy-loaded singleton.
+ * - Declared as final to prevent subclassing (best practice for factories).
+ * - Private constructor prevents instantiation.
+ * - No need for explicit synchronized or mutable static fields.
+ * - Ready for extension/testing if needed.
+ */
+public final class FileStoreFactory {
+
+    // Private constructor prevents instantiation
+    private FileStoreFactory() {}
+
+    /**
+     * Returns the singleton FileStore instance.
+     * - Lazy-initialized and thread-safe (JVM guarantees class initialization safety).
+     */
+    public static FileStore getFileStore() {
+        return Holder.INSTANCE;
+    }
+
+    /**
+     * Holder class for lazy, thread-safe initialization.
+     */
+    private static class Holder {
+        private static final FileStore INSTANCE = new OOSSFileStore();
+    }
+}
