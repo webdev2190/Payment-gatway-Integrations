@@ -30,3 +30,22 @@ public enum StatusEnum {
         return label;
     }
 }
+======================================================Java 21 New Code with Display Name==================================================>
+
+public enum Status {
+    NOT_YET_STARTED("Not Yet Started"),
+    INVALID("Invalid"),
+    IN_PROGRESS("In Progress"),
+    COMPLETED_SUCCESSFULLY("Completed Successfully"),
+    ERRORED("Errored");
+
+    private final String displayName;
+
+    Status(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String displayName() {
+        return displayName;
+    }
+}
