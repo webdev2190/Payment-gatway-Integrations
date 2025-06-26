@@ -145,5 +145,203 @@ class ESTrackingStoreTest {
                 .hasMessageContaining("test");
     }
 }
+
+==============================New Test==========================================>
+
+package com.optum.pure.trackingstore.impl;
+
+import com.optum.pure.model.requestobjects.common.TrackingRecord;
+import com.optum.pure.model.entity.TrackingStatus;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+
+import java.io.IOException;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class ESTrackingStoreTest {
+
+    @Mock
+    private RestHighLevelClient mockClient;
+    @Mock
+    private Logger mockLogger;
+    @InjectMocks
+    private ESTrackingStore trackingStore;
+    @Captor
+    private ArgumentCaptor<SearchRequest> searchRequestCaptor;
+    @Captor
+    private ArgumentCaptor<IndexRequest> indexRequestCaptor;
+    @Captor
+    private ArgumentCaptor<UpdateRequest> updateRequestCaptor;
+
+    private static final String TEST_TRACKING_ID = "test123";
+    private static final String TEST_CALLER_ID = "caller123";
+    private static final String TEST_STATUS = "IN-PROGRESS";
+    private static final String VALID_RESPONSE = """
+        {
+          "trackingId": "%s",
+          "status": "%s",
+          "callerId": "%s"
+        }
+        """.formatted(TEST_TRACKING_ID, TEST_STATUS, TEST_CALLER_ID);
+
+    @BeforeEach
+    void setup() throws Exception {
+        // Initialize test data
+        var trackingRecord = new TrackingRecord();
+        trackingRecord.setStatus(TEST_STATUS);
+        trackingRecord.setTrackingId(TEST_TRACKING_ID);
+        trackingRecord.setCallerId(TEST_CALLER_ID);
+
+        // Inject mock logger via reflection
+        var logField = ESTrackingStore.class.getDeclaredField("LOG");
+        logField.setAccessible(true);
+        logField.set(null, mockLogger);
+    }
+
+    @Test
+    void constructor_initializesCorrectly() {
+        assertThat(trackingStore)
+            .isNotNull()
+            .extracting("client")
+            .isEqualTo(mockClient);
+    }
+
+    // getTrackingStatus tests
+    @Test
+    void getTrackingStatus_returnsExpectedStatus() throws IOException {
+        setupSuccessfulSearchResponse(VALID_RESPONSE);
+
+        var result = trackingStore.getTrackingStatus(TEST_TRACKING_ID);
+
+        assertThat(result)
+            .extracting(TrackingStatus::getTrackingId, TrackingStatus::getStatus)
+            .containsExactly(TEST_TRACKING_ID, TEST_STATUS);
+    }
+
+    @Test
+    void getTrackingStatus_propagatesIOException() throws IOException {
+        when(mockClient.search(any(SearchRequest.class), any(RequestOptions.class)))
+            .thenThrow(new IOException("search failed"));
+
+        assertThatThrownBy(() -> trackingStore.getTrackingStatus(TEST_TRACKING_ID))
+            .isInstanceOf(IOException.class)
+            .hasMessageContaining("search failed");
+
+        verify(mockLogger).error("Failed to fetch tracking Record for trackingId {} from TrackingStore", TEST_TRACKING_ID);
+    }
+
+    // getTrackingRecord tests
+    @Test
+    void getTrackingRecord_returnsValidRecord() throws IOException {
+        setupSuccessfulSearchResponse(VALID_RESPONSE);
+
+        var result = trackingStore.getTrackingRecord(TEST_TRACKING_ID);
+
+        assertThat(result)
+            .extracting(TrackingRecord::getTrackingId, TrackingRecord::getStatus, TrackingRecord::getCallerId)
+            .containsExactly(TEST_TRACKING_ID, TEST_STATUS, TEST_CALLER_ID);
+    }
+
+    @Test
+    void getTrackingRecord_returnsEmptyRecordWhenNotFound() throws IOException {
+        var mockSearchResponse = mock(SearchResponse.class);
+        var mockHits = mock(SearchHits.class);
+
+        when(mockClient.search(any(SearchRequest.class), any(RequestOptions.class)))
+            .thenReturn(mockSearchResponse);
+        when(mockSearchResponse.getHits()).thenReturn(mockHits);
+        when(mockHits.getHits()).thenReturn(new SearchHit[0]);
+
+        var result = trackingStore.getTrackingRecord("notfound");
+
+        assertThat(result.getTrackingId()).isNull();
+    }
+
+    @Test
+    void getTrackingRecord_throwsOnInvalidJson() throws IOException {
+        setupSuccessfulSearchResponse("{ invalid json }");
+
+        assertThatThrownBy(() -> trackingStore.getTrackingRecord(TEST_TRACKING_ID))
+            .isInstanceOf(IOException.class);
+
+        verify(mockLogger).error("Failed to parse tracking Record for trackingId {}", TEST_TRACKING_ID);
+    }
+
+    // insertTrackingRecord tests
+    @Test
+    void insertTrackingRecord_success() throws IOException {
+        when(mockClient.index(any(IndexRequest.class), any(RequestOptions.class)))
+            .thenReturn(mock(IndexResponse.class));
+
+        var record = new TrackingRecord();
+        record.setTrackingId(TEST_TRACKING_ID);
+
+        assertThatCode(() -> trackingStore.insertTrackingRecord(record))
+            .doesNotThrowAnyException();
+
+        verify(mockClient).index(indexRequestCaptor.capture(), any(RequestOptions.class));
+        assertThat(indexRequestCaptor.getValue().id()).isEqualTo(TEST_TRACKING_ID);
+    }
+
+    // updateRecord tests
+    @Test
+    void updateRecord_success() throws IOException {
+        when(mockClient.update(any(UpdateRequest.class), any(RequestOptions.class)))
+            .thenReturn(mock(UpdateResponse.class));
+
+        var fields = List.of("status", "callerId");
+        var values = List.<Object>of("COMPLETED", "newCaller");
+
+        assertThatCode(() -> trackingStore.updateRecord(TEST_TRACKING_ID, fields, values))
+            .doesNotThrowAnyException();
+
+        verify(mockClient).update(updateRequestCaptor.capture(), any(RequestOptions.class));
+        var request = updateRequestCaptor.getValue();
+        assertThat(request)
+            .extracting(UpdateRequest::id, UpdateRequest::retryOnConflict)
+            .containsExactly(TEST_TRACKING_ID, 3);
+    }
+
+    @Test
+    void updateRecord_handlesFieldValueMismatch() {
+        var fields = List.of("status");
+        var values = List.<Object>of(); // Empty list
+
+        assertThatThrownBy(() -> trackingStore.updateRecord(TEST_TRACKING_ID, fields, values))
+            .isInstanceOf(IndexOutOfBoundsException.class);
+    }
+
+    // Helper methods
+    private void setupSuccessfulSearchResponse(String responseJson) throws IOException {
+        var mockSearchResponse = mock(SearchResponse.class);
+        var mockHits = mock(SearchHits.class);
+        var mockHit = mock(SearchHit.class);
+
+        when(mockClient.search(any(SearchRequest.class), any(RequestOptions.class)))
+            .thenReturn(mockSearchResponse);
+        when(mockSearchResponse.getHits()).thenReturn(mockHits);
+        when(mockHits.getHits()).thenReturn(new SearchHit[]{mockHit});
+        when(mockHit.getSourceAsString()).thenReturn(responseJson);
+    }
+}
 // Note: This test class uses JUnit 5 and Mockito for mocking dependencies.
 
